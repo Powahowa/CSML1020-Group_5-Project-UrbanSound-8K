@@ -46,7 +46,7 @@ for i, label in enumerate(classes):
     fn = files[label]
     fig.add_subplot(5, 2, i+1)
     plt.title(label)
-    sampleRate, soundData = read(fn) # alt: librosa.load(fn)
+    sampleRate, soundData = read(fn) # alt: soundData, sampleRate = librosa.load(fn)
     Audio(soundData[:,0], rate=sampleRate) # IPython play audio widget
     plt_orig_waveform(sampleRate, soundData, 'stereo')
     # alt: librosa.display.waveplot(data, sr= sample_rate)
