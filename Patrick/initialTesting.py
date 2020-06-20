@@ -49,19 +49,12 @@ filedata = filedata.groupby('class', as_index=False).apply(lambda x: x.sample(10
 #as_index=False is important because otherwise Pandas calls the index and the column the same thing, confusing itself
 filedata.groupby('class', as_index=False)['slice_file_name'].nunique()
 
+
 # %% loop through and do things to individual audio files (generate features)
-
-
 
 #audioFile, sampling_rate = librosa.load('../.data/UrbanSound8K/audio/patrickTemp/19026-1-0-0.wav')
 
-audioFile, sampling_rate = librosa.load('../.data/UrbanSound8K/audio/fold1/103074-7-0-0.wav')
-
-#sf.write('testFile.wav', audioFile, sampling_rate, subtype='PCM_16')
-
-
-
-# %% loop through and do things to individual audio files (generate features)
+#audioFile, sampling_rate = librosa.load('../.data/UrbanSound8K/audio/fold1/103074-7-0-0.wav')
 
 def mfccsEngineering(filepath):
       audioFile, sampling_rate = librosa.load(filepath)
@@ -73,10 +66,7 @@ filedata['mfccs'] = [mfccsEngineering(x) for x in filedata['path']]
 
 filedata.head()
 
-filedata.to_csv('./mfccsFeature.csv')
-
-# %% Plot librosa audio visualizations
-
+#filedata.to_csv('./mfccsFeature.csv')
 
 # %% Plot librosa audio visualizations
 plt.figure(figsize=(12, 4))
