@@ -24,6 +24,7 @@ def timer(func):
     """Print the runtime of the decorated function"""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        print(f'Calling {func.__name__!r}')
         startTime = time.perf_counter()
         value = func(*args, **kwargs)
         endTime = time.perf_counter()
@@ -55,8 +56,21 @@ def init_data(relPathToFolder):
     return fileData
 
 @timer
+def init_metadata(relPathToFolder):
+    # Read in the metadata
+    metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
+    tmp = []
+    for i in range(len(metaData)):
+        fold = metaData['fold'][i]
+        slice_file_name = metaData['slice_file_name'][i]
+        tmp.append(relPathToFolder + 
+            f'audio/fold{fold}/{slice_file_name}')
+    metaData = metaData.join(pd.DataFrame(tmp))
+    return metaData
+
+@timer
 def test_read_audio(filepath):
-    audioFile, samplingRate = librosa.load(filepath)
+    audioFile, samplingRate = load_audio(filepath)
 
     # Plot librosa audio visualizations
     plt.figure(figsize=(12, 4))
@@ -80,7 +94,35 @@ def test_read_audio(filepath):
 
 @timer
 def mfccsEngineering(filepath):
-      audioFile, sampling_rate = librosa.load(filepath)
+      audioFile, sampling_rate = load_audio(filepath)
       mfccs = librosa.feature.mfcc(y=audioFile, sr=sampling_rate,  n_mfcc=40)
       mfccs = np.mean(mfccs.T,axis=0)
       return mfccs
+
+# Function to plot the waveform (stereo)
+@timer
+def plt_orig_waveform(sampleRate, soundData, channels):
+    if channels == 'mono':
+        soundData = soundData[:,0]
+    clipLength = soundData.shape[0] / sampleRate
+    time = np.linspace(0, clipLength, soundData.shape[0])
+    plt.plot(time, soundData[:, 0], label="Left channel")
+    plt.plot(time, soundData[:, 1], label="Right channel")
+    plt.legend()
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.show()
+    print(f'Sample rate = {sampleRate}')
+    print(f'Data points = {soundData.shape[0]}')
+    print(f'Number of channels = {soundData.shape[1]}')
+    print(f'Length = {clipLength}s')
+
+@timer
+def load_audio(filepaths):
+    sounds = []
+    rates = []
+    for f in filepaths:
+        y, sr = librosa.load(f, sr=None)
+        sounds.append(y)
+        rates.append(sr)
+    return sounds, rates
