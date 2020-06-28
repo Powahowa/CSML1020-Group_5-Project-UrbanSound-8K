@@ -1,5 +1,5 @@
 # %% [markdown] 
-# # Feature Exploration
+# # Data Exploration
 # ## Imports
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -56,7 +56,7 @@ plt.show()
 # %% [markdown]
 # ### See how Audio Length/Duration is distributed
 # file_data = file_data.groupby('class', as_index=False).apply(lambda x: x.sample(10))
-# NOTE: above commented sampling down messes with librosa call for get_duration
+# NOTE: this sampling down code messes with librosa call for get_duration
 audio_file = []
 sampling_rate = []
 duration = []
