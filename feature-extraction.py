@@ -19,20 +19,25 @@ from IPython.display import Audio
 import sonicboom
 
 # %% Read the metadata
-filedata = sonicboom.init_data('../data/UrbanSound8K/')
+
+filedata = sonicboom.init_data('./.data/UrbanSound8K/')
+
+filedata.rename(columns={0: "path"}, inplace=True)
 
 # %% Sample down
 
 # samples down grouping by class - this gives me 15 (or whatever number) items from each class.
 # as_index=False is important because otherwise Pandas calls the index and the column the same thing, confusing itself
-filedata = filedata.groupby('class', as_index=False).apply(lambda x: x.sample(100))
+filedata = filedata.groupby('class', as_index=False).apply(lambda x: x.sample(2))
 
 # check that the sample down is working
 # as_index=False is important because otherwise Pandas calls the index and the column the same thing, confusing itself
 filedata.groupby('class', as_index=False)['slice_file_name'].nunique()
 
 # %% Read one audio file to see what it contains
-sonicboom.test_read_audio(filedata.path.iloc[0])
+
+#sonicboom.test_read_audio(filedata.path.iloc[10:15])
+
 
 # %% Generate MFCCs and add to dataframe
 filedata['mfccs'] = [sonicboom.mfccsEngineering(x) for x in filedata['path']]

@@ -44,7 +44,7 @@ def init_data(relPathToFolder):
 
     #remove path from fileNames leaving us just with the raw filename
     for i in range(len(fileNames)):
-        fileNames[i] = os.path.basename(fileNames[i])
+        fileNames[i] = os.path.basename(fileNames[i].name)
 
     #create dataframe from paths and filenames
     fileData = pd.DataFrame(list(zip(paths, fileNames)), 
@@ -55,18 +55,18 @@ def init_data(relPathToFolder):
                              on='slice_file_name')
     return fileData
 
-@timer
-def init_metadata(relPathToFolder):
-    # Read in the metadata
-    metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
-    tmp = []
-    for i in range(len(metaData)):
-        fold = metaData['fold'][i]
-        slice_file_name = metaData['slice_file_name'][i]
-        tmp.append(relPathToFolder + 
-            f'audio/fold{fold}/{slice_file_name}')
-    metaData = metaData.join(pd.DataFrame(tmp))
-    return metaData
+# @timer
+# def init_metadata(relPathToFolder):
+#     # Read in the metadata
+#     metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
+#     tmp = []
+#     for i in range(len(metaData)):
+#         fold = metaData['fold'][i]
+#         slice_file_name = metaData['slice_file_name'][i]
+#         tmp.append(relPathToFolder + 
+#             f'audio/fold{fold}/{slice_file_name}')
+#     metaData = metaData.join(pd.DataFrame(tmp))
+#     return metaData
 
 @timer
 def test_read_audio(filepath):
@@ -94,10 +94,10 @@ def test_read_audio(filepath):
 
 @timer
 def mfccsEngineering(filepath):
-      audioFile, sampling_rate = load_audio(filepath)
-      mfccs = librosa.feature.mfcc(y=audioFile, sr=sampling_rate,  n_mfcc=40)
-      mfccs = np.mean(mfccs.T,axis=0)
-      return mfccs
+    audioFile, sampling_rate = load_audio(filepath)
+    mfccs = librosa.feature.mfcc(y=audioFile, sr=sampling_rate,  n_mfcc=40)
+    mfccs = np.mean(mfccs.T,axis=0)
+    return mfccs
 
 # Function to plot the waveform (stereo)
 @timer
@@ -119,10 +119,5 @@ def plt_orig_waveform(sampleRate, soundData, channels):
 
 @timer
 def load_audio(filepaths):
-    sounds = []
-    rates = []
-    for f in filepaths:
-        y, sr = librosa.load(f, sr=None)
-        sounds.append(y)
-        rates.append(sr)
-    return sounds, rates
+    y, sr = librosa.load(filepaths, sr=None)
+    return y, sr
