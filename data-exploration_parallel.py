@@ -17,7 +17,7 @@ from joblib import Parallel, delayed
 
 # %% [markdown]
 # ## Load the audio files and combine metadata with the paths
-file_data = sonicboom.init_data('./.data/UrbanSound8K/')
+file_data = sonicboom.init_data('./data/UrbanSound8K/')
 
 CLASSES = list(file_data['class'].unique())
 NUM_CLASSES = len(CLASSES)
@@ -64,15 +64,13 @@ plt.show()
 # %% [markdown]
 # ### See how Audio Length/Duration is distributed
 
-#sample down
-#file_data = file_data.groupby('class', as_index=False).apply(lambda x: x.sample(10))
- 
-def audio_load_parallel(f):
-        y, sr = sonicboom.load_audio(f)
-        return y, sr
+# sample down
+# file_data = file_data.groupby('class', as_index=False).apply(lambda x: x.sample(10))
 
-file_data['raw_audio_tuple'] = Parallel(n_jobs=-1)(delayed(audio_load_parallel)(f) for f in file_data['path'])
-file_data[['raw_features', 'sample_rate']] = pd.DataFrame(file_data['raw_audio_tuple'].tolist(), index=file_data.index) 
+file_data['raw_audio_tuple'] = Parallel(n_jobs=-1)(delayed(
+    sonicboom.load_audio)(f) for f in file_data['path'])
+file_data[['raw_features', 'sample_rate']] = pd.DataFrame(
+    file_data['raw_audio_tuple'].tolist(), index=file_data.index) 
 file_data = file_data.drop(columns=['raw_audio_tuple'])
 
 file_data['duration'] = [
@@ -106,7 +104,7 @@ plt.show()
 # ## Plot Waves and Spectrogram
 # ### Plot waves, one for each class
 from IPython.display import Audio
-plt.figure(figsize=(20,60), dpi=600)
+plt.figure(figsize=(20,60))
 plt.tight_layout()
 for i in range(len(CLASSES)):
     selection = file_data[file_data['class'] == CLASSES[i]][:1].reset_index()
