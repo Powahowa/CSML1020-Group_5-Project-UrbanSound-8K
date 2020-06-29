@@ -18,6 +18,9 @@ from IPython.display import Audio
 # Import custom module containing useful functions
 import sonicboom
 
+# Define some decorator functions
+import time
+
 # %% Read the metadata
 
 filedata = sonicboom.init_data('./.data/UrbanSound8K/')
@@ -28,7 +31,7 @@ filedata.rename(columns={0: "path"}, inplace=True)
 
 # samples down grouping by class - this gives me 15 (or whatever number) items from each class.
 # as_index=False is important because otherwise Pandas calls the index and the column the same thing, confusing itself
-filedata = filedata.groupby('class', as_index=False).apply(lambda x: x.sample(2))
+filedata = filedata.groupby('class', as_index=False).apply(lambda x: x.sample(100))
 
 # check that the sample down is working
 # as_index=False is important because otherwise Pandas calls the index and the column the same thing, confusing itself
@@ -36,13 +39,38 @@ filedata.groupby('class', as_index=False)['slice_file_name'].nunique()
 
 # %% Read one audio file to see what it contains
 
-#sonicboom.test_read_audio(filedata.path.iloc[10:15])
+sonicboom.test_read_audio(filedata.path.iloc[0])
 
 
-# %% Generate MFCCs and add to dataframe
-filedata['mfccs'] = [sonicboom.mfccsEngineering(x) for x in filedata['path']]
+# %% PARALLEL Generate MFCCs and add to dataframe
+from joblib import Parallel, delayed
+
+startTime = time.perf_counter()
+
+filedata['mfccs'] = Parallel(n_jobs=-1)(delayed(sonicboom.mfccsEngineering)(x) for x in filedata['path'])
+
+
+#non-parallel version
+#filedata['mfccs'] = [sonicboom.mfccsEngineering(x) for x in filedata['path']]
+
+endTime = time.perf_counter()
+runTime = endTime - startTime
+print(f'Finished in {runTime:.4f} secs')
+
 filedata.head()
+
 #filedata.to_csv('./mfccsFeature.csv')
+
+# %% Parallel check
+
+#for x in range(len(filedata)):
+#    print(np.array_equal(filedata['mfccs'].iloc[x], filedata['mfccsParallel'].iloc[x]))
+
+# %% prep features for models
+
+#take mean of transposed mfccs (for some reason?) - this is now done in SonicBoom
+#filedata['mfccs'] = [np.mean(x.T,axis=0) for x in filedata['mfccs']]
+
 
 # %% Initial model generation: all of em 
 from sklearn.linear_model import LogisticRegression

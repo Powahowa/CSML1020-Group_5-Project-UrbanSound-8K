@@ -20,6 +20,9 @@ import glob #filesystem manipulation
 import functools
 import time
 
+#Parallel libraries
+from joblib import Parallel, delayed
+
 def timer(func):
     """Print the runtime of the decorated function"""
     @functools.wraps(func)
