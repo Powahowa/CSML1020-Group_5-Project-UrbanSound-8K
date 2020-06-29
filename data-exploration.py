@@ -4,14 +4,15 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import librosa
-import pandas as pd
+%matplotlib inline
+plt.style.use('ggplot')
 
 # Import custom module containing useful functions
 import sonicboom
 
 # %% [markdown]
 # ## Load the audio files and combine metadata with the paths
-file_data = sonicboom.init_metadata('./data/UrbanSound8K/')
+file_data = sonicboom.init_data('./data/UrbanSound8K/')
 
 CLASSES = list(file_data['class'].unique())
 NUM_CLASSES = len(CLASSES)
@@ -23,7 +24,7 @@ file_data.rename(columns={0: "path"}, inplace=True)
 file_data
 
 # %% [markdown]
-# ## Overview of what the data looks like
+# ## Overview of distributions of the data
 
 # %% [markdown]
 # ### Plot the overall counts of the categories
@@ -51,23 +52,26 @@ facets.set_xticklabels(rotation=45, horizontalalignment='right')
 facets.set_titles('Fold {col_name}')
 plt.xlabel('Class')
 plt.ylabel('Count')
+plt.suptitle('Counts of categories by fold', y=1.05)
 plt.show()
 
 # %% [markdown]
 # ### See how Audio Length/Duration is distributed
 # file_data = file_data.groupby('class', as_index=False).apply(lambda x: x.sample(10))
-# NOTE: this sampling down code messes with librosa call for get_duration
 audio_file = []
-sampling_rate = []
+sample_rate = []
 duration = []
 
-audio_file, sampling_rate = sonicboom.load_audio(file_data['path'])
+for f in file_data['path']:
+    y, sr = sonicboom.load_audio(f)
+    audio_file.append(y)
+    sample_rate.append(sr)
 
 file_data['raw_features'] = audio_file
-file_data['sampling_rate'] = sampling_rate
+file_data['sample_rate'] = sample_rate
 file_data['duration'] = [
-    librosa.get_duration(file_data['raw_features'][i], 
-                         file_data['sampling_rate'][i])
+    librosa.get_duration(file_data['raw_features'].iloc[i], 
+                         file_data['sample_rate'].iloc[i])
     for i in range(file_data.shape[0])
 ]
 
@@ -93,3 +97,30 @@ plt.ylabel('Count')
 plt.show()
 
 # %%
+# ## Plot Waves and Spectrogram
+# ### Plot waves, one for each class
+from IPython.display import Audio
+plt.figure(figsize=(20,60), dpi=600)
+plt.tight_layout()
+for i in range(len(CLASSES)):
+    selection = file_data[file_data['class'] == CLASSES[i]][:1].reset_index()
+    plt.subplot(10,1,i+1)
+    librosa.display.waveplot(selection['raw_features'][0], 
+                             sr=selection['sample_rate'][0])
+    plt.title(selection['class'][0])
+plt.suptitle('Wave Plot for each class', y=0.895, fontsize=16)
+plt.show()
+# Audio(selection['raw_features'][0], rate=selection['sample_rate'][0])
+
+#%%
+# ### Plot spectrogram, one for each class
+plt.figure(figsize=(20,60))
+plt.tight_layout()
+for i in range(len(CLASSES)):
+    selection = file_data[file_data['class'] == CLASSES[i]][:1].reset_index()
+    plt.subplot(10,1,i+1)
+    plt.specgram(selection['raw_features'][0], 
+             Fs=selection['sample_rate'][0])
+    plt.title(selection['class'][0])
+plt.suptitle('Spectrogram for each class', y=0.895, fontsize=16)
+plt.show()

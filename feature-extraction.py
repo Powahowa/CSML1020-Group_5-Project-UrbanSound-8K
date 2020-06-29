@@ -23,9 +23,7 @@ import time
 
 # %% Read the metadata
 
-filedata = sonicboom.init_data('./.data/UrbanSound8K/')
-
-filedata.rename(columns={0: "path"}, inplace=True)
+filedata = sonicboom.init_data('./data/UrbanSound8K/')
 
 # %% Sample down
 
@@ -49,7 +47,6 @@ startTime = time.perf_counter()
 
 filedata['mfccs'] = Parallel(n_jobs=-1)(delayed(sonicboom.mfccsEngineering)(x) for x in filedata['path'])
 
-
 #non-parallel version
 #filedata['mfccs'] = [sonicboom.mfccsEngineering(x) for x in filedata['path']]
 
@@ -70,7 +67,6 @@ filedata.head()
 
 #take mean of transposed mfccs (for some reason?) - this is now done in SonicBoom
 #filedata['mfccs'] = [np.mean(x.T,axis=0) for x in filedata['mfccs']]
-
 
 # %% Initial model generation: all of em 
 from sklearn.linear_model import LogisticRegression
