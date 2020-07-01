@@ -1,37 +1,32 @@
 # %% [markdown] 
 # # Data Exploration
+
 # ## Imports
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import librosa
-%matplotlib inline
-plt.style.use('ggplot')
 
 # Import custom module containing useful functions
 import sonicboom
 
-#Parallel libraries
+# Parallelization libraries
 from joblib import Parallel, delayed
 
-
 # %% [markdown]
-# ## Load the audio files and combine metadata with the paths
+# ## Read and add filepaths to original UrbanSound metadata
 file_data = sonicboom.init_data('./data/UrbanSound8K/')
 
 CLASSES = list(file_data['class'].unique())
 NUM_CLASSES = len(CLASSES)
 FOLDS = list(file_data['fold'].unique())
 NUM_FOLDS = len(FOLDS)
-
-file_data.rename(columns={0: "path"}, inplace=True)
+plt.style.use('ggplot')
 
 file_data
 
 # %% [markdown]
 # ## Overview of distributions of the data
-
-# %% [markdown]
 # ### Plot the overall counts of the categories
 ax = sns.countplot(x='class', data=file_data)
 ax.set_title('Overall count of audio files by category')
@@ -100,9 +95,9 @@ plt.xlabel('Duration (seconds)')
 plt.ylabel('Count')
 plt.show()
 
-# %%
-# ## Plot Waves and Spectrogram
-# ### Plot waves, one for each class
+# %% [markdown]
+# ### Plot Waves and Spectrogram
+# #### Plot waves, one for each class
 from IPython.display import Audio
 plt.figure(figsize=(20,60))
 plt.tight_layout()
@@ -116,8 +111,8 @@ plt.suptitle('Wave Plot for each class', y=0.895, fontsize=16)
 plt.show()
 # Audio(selection['raw_features'][0], rate=selection['sample_rate'][0])
 
-#%%
-# ### Plot spectrogram, one for each class
+# %% [markdown]
+# ####  Plot spectrogram, one for each class
 plt.figure(figsize=(20,60))
 plt.tight_layout()
 for i in range(len(CLASSES)):
