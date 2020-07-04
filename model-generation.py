@@ -129,7 +129,7 @@ def get_network():
     model.add(keras.layers.Dense(64, activation="relu", input_shape=input_shape))
     model.add(keras.layers.Dense(num_classes, activation = "softmax"))
     model.compile(optimizer=keras.optimizers.Adam(1e-4),
-        loss=keras.losses.CategoricalCrossentropy(),
+        loss=keras.losses.SparseCategoricalCrossentropy(),
         metrics=["accuracy"])
 
     return model
