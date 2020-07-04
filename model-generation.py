@@ -22,12 +22,12 @@ from sklearn.metrics import precision_score, recall_score, roc_auc_score
 from sklearn.metrics import f1_score
 from sklearn.model_selection import cross_validate
 from mlxtend.plotting import plot_learning_curves
-import matplotlib as plt
+import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 # %% [markdown]
 # ## Read in the features
-filedata = pd.read_csv('./output/intermediate-data/filedata-mfcc.csv')
+filedata = pd.read_pickle('./output/intermediate-data/filedata-mfcc.pkl')
 
 # %% [markdown]
 # ## Try traditional ML models
@@ -82,7 +82,6 @@ cv_results_df = pd.DataFrame(cv_result_entries)
 # ### Misclassification Errors
 i=0
 for model in models:
-    plt.figure()
     plot_learning_curves(X, y, X, y, model)
     plt.title('Learning Curve for ' + model_namelist[i], fontsize=14)
     plt.xlabel('Training Set Size (%)', fontsize=12)
@@ -117,7 +116,7 @@ for _ in models:
     i += 1
 
 # %% [markdown]
-# ## Try Neural Network
+# ## Try Neural Networks
 # ### Define feedforward network architecture
 def get_network():
     input_shape = (40,)
@@ -142,22 +141,23 @@ folds = np.array(list(range(1,11)))
 kf = KFold(n_splits=10)
 for train_index, test_index in kf.split(folds):
     traindata = filedata[filedata['fold'].isin(list(folds[train_index]))]
-    x_train = pd.DataFrame(traindata['mfccs'], 
-        columns=list(range(1, 40+1)))
-    y_train = pd.Series(traindata['classID'].tolist())
+    x_train = np.array(traindata['mfccs'].tolist())
+    y_train = np.array(traindata['classID'].tolist())
 
     testdata = filedata[filedata['fold'] == folds[test_index][0]]
-    x_test = pd.DataFrame(testdata["mfccs"],
-        columns=list(range(1, 40+1)))
-    y_test = pd.Series(testdata["classID"].tolist())
+    x_test = np.array(testdata["mfccs"].tolist())
+    y_test = np.array(testdata["classID"].tolist())
 
     # Possibly do mean normalization here on x_train and
     # x_test but using only x_train's mean and std.
 
     model = get_network()
-    model.fit(x_train, y_train, epochs = 5, verbose = 1)
-    l, a = model.evaluate(x_test, y_test, verbose = 1)
+    model.fit(x_train, y_train, epochs=100, 
+              use_multiprocessing=True, verbose=0)
+    l, a = model.evaluate(x_test, y_test, verbose=0)
     accuracies.append(a)
     print("Loss: {0} | Accuracy: {1}".format(l, a))
 
 print("Average 10 Folds Accuracy: {0}".format(np.mean(accuracies)))
+
+# %%

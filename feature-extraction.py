@@ -29,7 +29,7 @@ import time
 # %% [markdown]
 # ## Define some constants
 SAVEPATH = './output/intermediate-data/'
-MFCCFILENAME = 'filedata-mfcc.csv'
+MFCCFILENAME = 'filedata-mfcc.pkl'
 
 # %% [markdown]
 # ## Read and add filepaths to original UrbanSound metadata
@@ -41,7 +41,11 @@ filedata = sonicboom.init_data('./data/UrbanSound8K/')
 # samples down grouping by class - this gives me X items from each class.
 # as_index=False is important because otherwise,
 # Pandas calls the index and the column the same thing, confusing itself
-filedata = filedata.groupby('class', as_index=False).apply(lambda x: x.sample(100))
+filedata = filedata.groupby(
+    'class', 
+    as_index=False, 
+    group_keys=False
+).apply(lambda x: x.sample(100))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
@@ -70,4 +74,6 @@ filedata.head()
 
 # %% [markdown]
 # ## Save the generated features
-filedata.to_csv(SAVEPATH + MFCCFILENAME, index=False)
+filedata.to_pickle(SAVEPATH + MFCCFILENAME)
+
+# %%
