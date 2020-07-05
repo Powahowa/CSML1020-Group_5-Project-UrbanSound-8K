@@ -102,23 +102,23 @@ def mfccsEngineering(filepath):
     mfccs = np.mean(mfccs.T,axis=0)
     return mfccs
 
-# Function to plot the waveform (stereo)
-@timer
-def plt_orig_waveform(sampleRate, soundData, channels):
-    if channels == 'mono':
-        soundData = soundData[:,0]
-    clipLength = soundData.shape[0] / sampleRate
-    time = np.linspace(0, clipLength, soundData.shape[0])
-    plt.plot(time, soundData[:, 0], label="Left channel")
-    plt.plot(time, soundData[:, 1], label="Right channel")
-    plt.legend()
-    plt.xlabel("Time [s]")
-    plt.ylabel("Amplitude")
-    plt.show()
-    print(f'Sample rate = {sampleRate}')
-    print(f'Data points = {soundData.shape[0]}')
-    print(f'Number of channels = {soundData.shape[1]}')
-    print(f'Length = {clipLength}s')
+# # Function to plot the waveform (stereo)
+# @timer
+# def plt_orig_waveform(sampleRate, soundData, channels):
+#     if channels == 'mono':
+#         soundData = soundData[:,0]
+#     clipLength = soundData.shape[0] / sampleRate
+#     time = np.linspace(0, clipLength, soundData.shape[0])
+#     plt.plot(time, soundData[:, 0], label="Left channel")
+#     plt.plot(time, soundData[:, 1], label="Right channel")
+#     plt.legend()
+#     plt.xlabel("Time [s]")
+#     plt.ylabel("Amplitude")
+#     plt.show()
+#     print(f'Sample rate = {sampleRate}')
+#     print(f'Data points = {soundData.shape[0]}')
+#     print(f'Number of channels = {soundData.shape[1]}')
+#     print(f'Length = {clipLength}s')
 
 @timer
 def load_audio(filepaths):
