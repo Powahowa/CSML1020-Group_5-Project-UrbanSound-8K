@@ -148,8 +148,9 @@ def spectral_contrastEngineering(filepath):
     audioFile, sampling_rate = load_audio(filepath)
 
     #generate Short-time Fourier transform (STFT) feature
-    stft = librosa.stft(audioFile)    #generate a spectral contrast (from a STFT)
-
+    stft = librosa.stft(audioFile)
+    
+    #generate a spectral contrast (from a STFT)
     spectral_contrast = librosa.feature.spectral_contrast(S=stft,sr=sampling_rate)
 
     #transpose the array and take the mean along axis=0

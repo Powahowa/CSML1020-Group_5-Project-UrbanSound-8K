@@ -48,7 +48,7 @@ if (sampleDown == True):
         'class', 
         as_index=False, 
         group_keys=False
-    ).apply(lambda x: x.sample(374))
+    ).apply(lambda x: x.sample(n=2, random_state=0))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
@@ -84,26 +84,31 @@ tonnetz_exec = True
 if (mfccs_exec == True):
     #generate mfccs features
     filedata['mfccs'] = Parallel(n_jobs=-1)(delayed(sonicboom.mfccsEngineering)(x) for x in filedata['path'])
-
+    print("MFCCS done!")
 if (melSpec_exec == True):
     #generate melSpec features
     filedata['melSpec'] = Parallel(n_jobs=-1)(delayed(sonicboom.melSpecEngineering)(x) for x in filedata['path'])
+    print("Mel-scaled spectrogram done!")
 
 if (stft_exec == True):
     #generate stft features
     filedata['stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.stftEngineering)(x) for x in filedata['path'])
+    print("Short-time Fourier transform (STFT) done!")
 
 if (chroma_stft_exec == True):
     #generate chroma_stft features
     filedata['chroma_stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.chroma_stftEngineering)(x) for x in filedata['path'])
+    print("Chromagram (STFT) done!")
 
 if (spectral_contrast_exec == True):
     #generate spectral_contrast features
     filedata['spectral_contrast'] = Parallel(n_jobs=-1)(delayed(sonicboom.spectral_contrastEngineering)(x) for x in filedata['path'])
+    print("Spectral contrast (STFT) done!")
 
 if (tonnetz_exec == True):
     #generate tonnetz features
     filedata['tonnetz'] = Parallel(n_jobs=-1)(delayed(sonicboom.tonnetzEngineering)(x) for x in filedata['path'])
+    print("Tonal centroid features (tonnetz) done!")
 
 endTime = time.perf_counter()
 runTime = endTime - startTime
