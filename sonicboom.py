@@ -98,9 +98,79 @@ def test_read_audio(filepath):
 @timer
 def mfccsEngineering(filepath):
     audioFile, sampling_rate = load_audio(filepath)
+
+    #generate Mel-frequency cepstral coefficients (MFCCs)
     mfccs = librosa.feature.mfcc(y=audioFile, sr=sampling_rate,  n_mfcc=40)
+
+    #transpose the array and take the mean along axis=0
     mfccs = np.mean(mfccs.T,axis=0)
     return mfccs
+
+@timer
+def melSpecEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #generate a mel-scaled spectrogram
+    melSpec = librosa.feature.melspectrogram(audioFile, sr=sampling_rate)
+
+    #transpose the array and take the mean along axis=0
+    melSpec = np.mean(melSpec.T,axis=0)
+    return melSpec
+    
+@timer
+def stftEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #generate Short-time Fourier transform (STFT) feature
+    stft = librosa.stft(audioFile)
+
+    #take absolute value of array
+    stft = np.abs(stft)
+    return stft
+
+@timer
+def chroma_stftEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #generate Short-time Fourier transform (STFT) feature
+    stft = librosa.stft(audioFile)
+    
+    #generate a chromagram from a waveform or power spectrogram (STFT based)
+    chroma_stft = librosa.feature.chroma_stft(S=stft, sr=sampling_rate)
+
+    #transpose the array and take the mean along axis=0
+    chrome_stft = np.mean(chroma_stft.T,axis=0)
+
+    return chroma_stft
+
+@timer
+def spectral_contrastEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #generate Short-time Fourier transform (STFT) feature
+    stft = librosa.stft(audioFile)    #generate a spectral contrast (from a STFT)
+
+    spectral_contrast = librosa.feature.spectral_contrast(S=stft,sr=sampling_rate)
+
+    #transpose the array and take the mean along axis=0
+    spectral_contrast = np.mean(spectral_contrast.T,axis=0)
+
+    return spectral_contrast
+
+@timer
+def tonnetzEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #Generate harmonic elements
+    harmonic = librosa.effects.harmonic(audioFile)
+    
+    #generate tonal centroid features (tonnetz) from the harmonic component of a song
+    tonnetz = librosa.feature.tonnetz(y=harmonic, sr=sampling_rate)
+
+    #transpose the array and take the mean along axis=0
+    tonnetz = np.mean(tonnetz.T,axis=0)
+
+    return tonnetz
 
 # # Function to plot the waveform (stereo)
 # @timer
