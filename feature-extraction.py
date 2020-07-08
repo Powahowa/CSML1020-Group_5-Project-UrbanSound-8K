@@ -38,7 +38,7 @@ filedata = sonicboom.init_data('./data/UrbanSound8K/')
 # %% [markdown]
 # ## Sample down
 
-sampleDown = True
+sampleDown = False
 
 # samples down grouping by class - this gives me X items from each class.
 # as_index=False is important because otherwise,
@@ -59,6 +59,13 @@ filedata.groupby('class', as_index=False)['slice_file_name'].nunique()
 # ## Read one audio file to see what it contains
 sonicboom.test_read_audio(filedata.path.iloc[0])
 
+# %%
+# Get sample rates for all .wave files and add to filedata dataframe
+
+filedata['Sample Rate'] = Parallel(n_jobs=-1)(delayed(sonicboom.samplerate)(x) for x in filedata['path'])
+
+filedata.to_csv('./SampleRates.csv')
+
 # %% [markdown]
 # ## PARALLEL Generate features and add to dataframe
 startTime = time.perf_counter()
@@ -78,7 +85,7 @@ mfccs_exec = True
 melSpec_exec = True
 stft_exec = True
 chroma_stft_exec = True
-spectral_contrast_exec = True
+spectral_contrast_stft_exec = True
 tonnetz_exec = True
 
 if (mfccs_exec == True):
@@ -100,9 +107,9 @@ if (chroma_stft_exec == True):
     filedata['chroma_stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.chroma_stftEngineering)(x) for x in filedata['path'])
     print("Chromagram (STFT) done!")
 
-if (spectral_contrast_exec == True):
-    #generate spectral_contrast features
-    filedata['spectral_contrast'] = Parallel(n_jobs=-1)(delayed(sonicboom.spectral_contrastEngineering)(x) for x in filedata['path'])
+if (spectral_contrast_stft_exec == True):
+    #generate spectral_contrast_stft features
+    filedata['spectral_contrast_stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.spectral_contrast_stftEngineering)(x) for x in filedata['path'])
     print("Spectral contrast (STFT) done!")
 
 if (tonnetz_exec == True):
