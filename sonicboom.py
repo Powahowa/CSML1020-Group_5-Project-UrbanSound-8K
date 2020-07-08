@@ -6,13 +6,11 @@ from numpy.fft import fft, ifft
 import os
 import pathlib
 
-
 # Audio processing/tools import
 import librosa
 import librosa.display
 from scipy.io.wavfile import read 
 from IPython.display import Audio
-import wave
 #REMEMBER you need ffmpeg installed
 
 # other imports
@@ -60,6 +58,19 @@ def init_data(relPathToFolder):
                              on='slice_file_name')
     return fileData
 
+# @timer
+# def init_metadata(relPathToFolder):
+#     # Read in the metadata
+#     metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
+#     tmp = []
+#     for i in range(len(metaData)):
+#         fold = metaData['fold'][i]
+#         slice_file_name = metaData['slice_file_name'][i]
+#         tmp.append(relPathToFolder + 
+#             f'audio/fold{fold}/{slice_file_name}')
+#     metaData = metaData.join(pd.DataFrame(tmp))
+#     return metaData
+
 @timer
 def test_read_audio(filepath):
     audioFile, samplingRate = load_audio(filepath)
@@ -84,113 +95,81 @@ def test_read_audio(filepath):
     plt.tight_layout()
     plt.show()
 
-#Params:
-# filepath = path to .wav audio file
-# various "_exec" parameters = toggle specific feature generation
-# flatten = transpose and take mean of (flatten) array
-# normalize = normalize arrays
 @timer
-def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, flatten=True, normalize = True):
+def mfccsEngineering(filepath):
     audioFile, sampling_rate = load_audio(filepath)
-
-    if (mfccs_exec == True):
-        #generate mfccs features
-        mfccs = mfccsEngineering(audioFile, sampling_rate)
-        if(flatten == True):
-            #transpose the array and take the mean along axis=0
-             mfccs = np.mean(mfccs.T,axis=0)
-        if (normalize == True):
-            mfccs = norm_audio(mfccs)
-        print("MFCCS done!")
-    if (melSpec_exec == True):
-        #generate melSpec features
-        melSpec = melSpecEngineering(audioFile, sampling_rate)
-        if(flatten == True):
-            #transpose the array and take the mean along axis=0
-            melSpec = np.mean(melSpec.T,axis=0)      
-        print("Mel-scaled spectrogram done!")
-    #all 3 of the STFT, chroma_STFT and spectral_contrast_STFT features are based on a STFT feature so it needs to be generated if any are requested
-    if (stft_exec == True or chroma_stft_exec == True or spectral_contrast_stft_exec == True):
-        #generate stft features
-        stft = stftEngineering(audioFile, sampling_rate)
-        print("Short-time Fourier transform (STFT) done!")
-    if (chroma_stft_exec == True):
-        #generate chroma_stft features
-        melSpec = melSpecEngineering(audioFile, sampling_rate, stft)
-        if(flatten == True):
-            #transpose the array and take the mean along axis=0
-            chroma_stft = np.mean(chroma_stft.T,axis=0)
-        print("Chromagram (STFT) done!")
-
-    if (spectral_contrast_stft_exec == True):
-        #generate spectral_contrast_stft features
-        melSpec = melSpecEngineering(audioFile, sampling_rate, stft)
-        if (flatten == True):
-            #transpose the array and take the mean along axis=0
-            spectral_contrast_stft = np.mean(spectral_contrast_stft.T,axis=0)
-        print("Spectral contrast (STFT) done!")
-
-    if (tonnetz_exec == True):
-        #generate tonnetz features
-        melSpec = melSpecEngineering(audioFile, sampling_rate)
-
-        if (flatten == True):
-            #transpose the array and take the mean along axis=0
-            tonnetz = np.mean(tonnetz.T,axis=0)
-        print("Tonal centroid features (tonnetz) done!")
-            
-    return dataframeThing
-@timer
-def mfccsEngineering(audioFile, sampling_rate):
 
     #generate Mel-frequency cepstral coefficients (MFCCs)
     mfccs = librosa.feature.mfcc(y=audioFile, sr=sampling_rate,  n_mfcc=40)
 
+    #transpose the array and take the mean along axis=0
+    mfccs = np.mean(mfccs.T,axis=0)
     return mfccs
 
 @timer
-def melSpecEngineering(audioFile, sampling_rate):
+def melSpecEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
 
     #generate a mel-scaled spectrogram
     melSpec = librosa.feature.melspectrogram(audioFile, sr=sampling_rate)
 
+    #transpose the array and take the mean along axis=0
+    melSpec = np.mean(melSpec.T,axis=0)
     return melSpec
     
 @timer
-def stftEngineering(audioFile, sampling_rate):
+def stftEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
 
     #generate Short-time Fourier transform (STFT) feature
     stft = librosa.stft(audioFile)
 
     #take absolute value of array
     stft = np.abs(stft)
-
     return stft
 
 @timer
-def chroma_stftEngineering(audioFile, sampling_rate, stft):
-   
+def chroma_stftEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #generate Short-time Fourier transform (STFT) feature
+    stft = librosa.stft(audioFile)
+    
     #generate a chromagram from a waveform or power spectrogram (STFT based)
     chroma_stft = librosa.feature.chroma_stft(S=stft, sr=sampling_rate)
+
+    #transpose the array and take the mean along axis=0
+    chrome_stft = np.mean(chroma_stft.T,axis=0)
 
     return chroma_stft
 
 @timer
-def spectral_contrast_stftEngineering(audioFile, sampling_rate, stft):
+def spectral_contrastEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
+
+    #generate Short-time Fourier transform (STFT) feature
+    stft = librosa.stft(audioFile)
     
     #generate a spectral contrast (from a STFT)
-    spectral_contrast_stft = librosa.feature.spectral_contrast_stft(S=stft,sr=sampling_rate)
+    spectral_contrast = librosa.feature.spectral_contrast(S=stft,sr=sampling_rate)
 
-    return spectral_contrast_stft
+    #transpose the array and take the mean along axis=0
+    spectral_contrast = np.mean(spectral_contrast.T,axis=0)
+
+    return spectral_contrast
 
 @timer
-def tonnetzEngineering(audioFile, sampling_rate):
+def tonnetzEngineering(filepath):
+    audioFile, sampling_rate = load_audio(filepath)
 
     #Generate harmonic elements
     harmonic = librosa.effects.harmonic(audioFile)
     
     #generate tonal centroid features (tonnetz) from the harmonic component of a song
     tonnetz = librosa.feature.tonnetz(y=harmonic, sr=sampling_rate)
+
+    #transpose the array and take the mean along axis=0
+    tonnetz = np.mean(tonnetz.T,axis=0)
 
     return tonnetz
 
@@ -213,16 +192,6 @@ def tonnetzEngineering(audioFile, sampling_rate):
 #     print(f'Length = {clipLength}s')
 
 @timer
-def load_audio(filepath):
-    y, sr = librosa.load(filepath, sr=None)
+def load_audio(filepaths):
+    y, sr = librosa.load(filepaths, sr=None)
     return y, sr
-
-def norm_audio(data):
-    max_data = np.max(data)
-    min_data = np.min(data)
-    data = (data-min_data)/(max_data-min_data+1e-6)
-    return data
-
-def samplerate(filepath):
-    x, samplerate = librosa.load(filepath)
-    return samplerate
