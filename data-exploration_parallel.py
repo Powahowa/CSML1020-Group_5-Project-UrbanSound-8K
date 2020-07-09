@@ -63,7 +63,7 @@ plt.show()
 # file_data = file_data.groupby('class', as_index=False).apply(lambda x: x.sample(10))
 
 file_data['raw_audio_tuple'] = Parallel(n_jobs=-1)(delayed(
-    sonicboom.load_audio)(f) for f in file_data['path'])
+    librosa.load)(f, sr=None) for f in file_data['path'])
 file_data[['raw_features', 'sample_rate']] = pd.DataFrame(
     file_data['raw_audio_tuple'].tolist(), index=file_data.index) 
 file_data = file_data.drop(columns=['raw_audio_tuple'])
@@ -90,9 +90,45 @@ plt.show()
 # %% [markdown]
 # #### Also, see the count of various clip lengths
 ax = sns.distplot(file_data['duration'], bins=20, kde=False)
-ax.set_title('Count of Clip Lengths')
+ax.set_title('Count of Clip Lengths (20 bins)')
 plt.xlabel('Duration (seconds)')
 plt.ylabel('Count')
+plt.show()
+
+# %% [markdown]
+# ### Distribution of number of frames of data in the audio files
+n_frames = [len(file_data['raw_features'][x]) for x in range(len(file_data))]
+ax = sns.distplot(n_frames, kde=False)
+ax.set_title('Distribution of number of frames of data in audio files')
+plt.xlabel('Number of Frames of Data')
+plt.ylabel('Count')
+plt.show()
+
+# %% [markdown]
+# ### See how Sample Rate is distributed
+# #### See the count of various sample rates
+ax = sns.countplot(x='sample_rate', data=file_data)
+ax.set_title('Overall Count of Sample Rates')
+ax.set_xticklabels(
+    ax.get_xticklabels(), 
+    rotation=45, 
+    horizontalalignment='right',
+)
+plt.xlabel('Sample Rate (Hz)')
+plt.ylabel('Count')
+plt.show()
+
+# %% [markdown]
+# #### Also, see the distribution of sample rate vs class
+ax = sns.stripplot(x="class", y="sample_rate", data=file_data, linewidth=0.5)
+ax.set_xticklabels(
+    ax.get_xticklabels(), 
+    rotation=45, 
+    horizontalalignment='right',
+)
+ax.set_title('Distribution of Sample Rate vs Class')
+plt.xlabel('Class')
+plt.ylabel('Sample Rate (Hz)')
 plt.show()
 
 # %% [markdown]
