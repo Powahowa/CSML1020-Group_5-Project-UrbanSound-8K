@@ -55,7 +55,7 @@ path = src + '/fold1'
 #%%
 #Read all files in each path folder iteration
 files = glob(path + '/*.wav')
-for j in range(0,10):#(len(files))):
+for j in range(0,(len(files))):
     audio, sfreq = librosa.load(files[j])        
     raw_list.append(audio)
     filename.append(os.path.basename(files[j]))
@@ -72,8 +72,7 @@ for j in range(0,10):#(len(files))):
     fr = fr.ravel()
 
     fft_freq.append(fr)
-    
-    
+        
     fig = plt.figure(frameon=False)
     fig.set_size_inches(10,10)
     
@@ -88,14 +87,62 @@ for j in range(0,10):#(len(files))):
     plt.savefig(os.path.splitext(os.path.basename(files[j]))[0], dpi = 25.6)
     plt.close()
 
-    temp_df = temp_df.append({'fft_freq_array': fft_freq}, ignore_index=True)
-# %%
-#temp_df = temp_df.append({'slice_file_name': filename}, ignore_index=True)    
-temp_df['slice_file_name'] = filename
-# %% 
-sound_df = meta_fold1.merge(temp_df, on = 'slice_file_name', how = 'left')
 
 # %%
+temp_df = pandas.DataFrame({'slice_file_name': filename, 'fft_freq_array': fft_freq})    
+#%%
+sound_df = meta_fold1.merge(temp_df, on = 'slice_file_name', how = 'left')
+
+#%% 
+# Image classification using Tensorflow & Keras
+
+#Import dependencies
+import tensorflow as tf
+from tensorflow_core import keras as tk
+#from tensorflow.keras import layers
+
+
+#%%
+img_path = '../data/UrbanSound8K/Viswesh'
+img_files = glob(img_path + '/*.png')
+
+# Define some parameters for the loader
+batch_size = 32
+img_height = 180
+img_width = 180
+
+# Import image data
+train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  img_path,
+  validation_split=0.8,
+  subset="training",
+  seed=123,
+  #image_size=(img_height, img_width),
+  batch_size=batch_size)
+
+test_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  img_path,
+  validation_split=0.2,
+  subset="validation",
+  seed=123,
+  #image_size=(img_height, img_width),
+  batch_size=batch_size)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%%
+
+"""# %%
 # Get x & y from "sound_df"
 x = sound_df.iloc[:, sound_df.columns == 'fft_freq_array']
 y = sound_df.iloc[:, sound_df.columns == 'classID']
@@ -104,13 +151,6 @@ y = sound_df.iloc[:, sound_df.columns == 'classID']
 # Train-test split
 x_train, x_test, y_train, y_test = train_test_split(
             x, y, test_size=0.3, random_state=9)
-
-""" x_train = x.head(round(0.7*len(x)))
-x_test = x.tail(round(0.3*len(x)))
-
-y_train = y.head(round(0.7*len(y)))
-y_test = y.tail(round(0.7*len(y))) """
-
 
 # %% 
 ## Using FFT Freqs as features
@@ -131,7 +171,7 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import cross_validate
 from mlxtend.plotting import plot_learning_curves
 
-""" # %% 
+# %% 
 # Define models
 def run_logreg(x_train, y_train):
     classifier = OneVsRestClassifier(LogisticRegression(random_state=9))
@@ -156,7 +196,7 @@ def run_nb(x_train, y_train):
 def run_svm(x_train, y_train):
     classifier = OneVsRestClassifier(LinearSVC(random_state=9))
     classifier.fit(x_train, y_train)
-    return classifier """
+    return classifier
 
 #%%
 models = [  
@@ -190,10 +230,10 @@ cv_result_entries = []
 i = 0                  
 
 #X = pandas.DataFrame(sound_df['fft_freq_array'].iloc[x] for x in range(len(sound_df)))
-""" y = label_binarize(
+""""""  y = label_binarize(
       pandas.DataFrame(sound_df['classID'].iloc[x] for x in range(len(sound_df))),
       classes=[0,1,2,3,4,5,6,7,8,9]
-      )
+      ) """
  """
 # ### Loop cross validation through various models and generate results
 for mod in models:
@@ -247,7 +287,7 @@ for _ in models:
     plt.title('Confusion Matrix for ' + model_namelist[i], fontsize=14)
     sns.heatmap(cm_df, annot=True, fmt='.6g', annot_kws={"size": 10}, cmap='Reds')
     plt.show()
-    i += 1
+    i += 1 """
 
 
 
@@ -385,7 +425,7 @@ plt.show() """
 #* https://towardsdatascience.com/understanding-audio-data-fourier-transform-fft-spectrogram-and-speech-recognition-a4072d228520
 #* https://stackoverflow.com/questions/18625085/how-to-plot-a-wav-file
 #* https://www.youtube.com/watch?v=aQKX3mrDFoY
-
+#* https://heartbeat.fritz.ai/build-a-deep-learning-model-to-classify-images-using-keras-and-tensorflow-2-0-379e99c0ba88
 
 # %% 
 # Shady References
