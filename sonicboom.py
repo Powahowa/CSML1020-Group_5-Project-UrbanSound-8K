@@ -89,9 +89,9 @@ def test_read_audio(filepath):
 def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, flatten=True, normalize=True):
     audioFile, sampling_rate = load_audio(filepath)
 
-    #featuresDF = pd.DataFrame([filepath], columns=['path'])
+    featuresDF = pd.DataFrame([filepath], columns=['path'])
 
-    featuresDF = pd.DataFrame()
+    #featuresDF = pd.DataFrame()
 
     if (mfccs_exec == True):
         #generate mfccs features

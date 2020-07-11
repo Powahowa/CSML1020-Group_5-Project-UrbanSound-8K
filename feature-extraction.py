@@ -48,7 +48,7 @@ if (sampleDown == True):
         'class', 
         as_index=False, 
         group_keys=False
-    ).apply(lambda x: x.sample(n=100, random_state=0))
+    ).apply(lambda x: x.sample(n=2, random_state=0))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
@@ -87,54 +87,23 @@ stft_exec = True
 chroma_stft_exec = True
 spectral_contrast_stft_exec = True
 tonnetz_exec = True
+flatten = True
+normalize = True
 
 tempDF = pd.DataFrame() 
 
-tempDF = pd.concat(Parallel(n_jobs=-1)(delayed(sonicboom.generateFeatures)(x, mfccs_exec=True, \
-    melSpec_exec=True, stft_exec=True, chroma_stft_exec=True, \
-        spectral_contrast_stft_exec=True, tonnetz_exec=True, \
-        flatten=True, normalize=True) for x in filedata['path']))
-
-# tempDF = sonicboom.generateFeatures(filedata.iloc[0].path, mfccs_exec=True, \
-#     melSpec_exec=True, stft_exec=True, chroma_stft_exec=True, \
-#         spectral_contrast_stft_exec=True, tonnetz_exec=True, \
-#         flatten=True, normalize=True)
-
-# if (mfccs_exec == True):
-#     #generate mfccs features
-#     filedata['mfccs'] = Parallel(n_jobs=-1)(delayed(sonicboom.mfccsEngineering)(x) for x in filedata['path'])
-#     print("MFCCS done!")
-# if (melSpec_exec == True):
-#     #generate melSpec features
-#     filedata['melSpec'] = Parallel(n_jobs=-1)(delayed(sonicboom.melSpecEngineering)(x) for x in filedata['path'])
-#     print("Mel-scaled spectrogram done!")
-
-# if (stft_exec == True):
-#     #generate stft features
-#     filedata['stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.stftEngineering)(x) for x in filedata['path'])
-#     print("Short-time Fourier transform (STFT) done!")
-
-# if (chroma_stft_exec == True):
-#     #generate chroma_stft features
-#     filedata['chroma_stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.chroma_stftEngineering)(x) for x in filedata['path'])
-#     print("Chromagram (STFT) done!")
-
-# if (spectral_contrast_stft_exec == True):
-#     #generate spectral_contrast_stft features
-#     filedata['spectral_contrast_stft'] = Parallel(n_jobs=-1)(delayed(sonicboom.spectral_contrast_stftEngineering)(x) for x in filedata['path'])
-#     print("Spectral contrast (STFT) done!")
-
-# if (tonnetz_exec == True):
-#     #generate tonnetz features
-#     filedata['tonnetz'] = Parallel(n_jobs=-1)(delayed(sonicboom.tonnetzEngineering)(x) for x in filedata['path'])
-#     print("Tonal centroid features (tonnetz) done!")
+tempDF = pd.concat(Parallel(n_jobs=-1)(delayed(sonicboom.generateFeatures) \
+    (x, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, \
+        spectral_contrast_stft_exec, tonnetz_exec, \
+        flatten, normalize) for x in filedata['path']))
 
 endTime = time.perf_counter()
 runTime = endTime - startTime
 print(f'Finished in {runTime:.4f} secs')
 
-#filedata.head()
-tempDF.head()
+filedata = filedata.join(tempDF.set_index('path'), on='path')
+
+filedata.head()
 
 # %% [markdown]
 # ## Save the generated features
