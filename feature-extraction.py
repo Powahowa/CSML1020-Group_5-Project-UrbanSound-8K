@@ -87,6 +87,7 @@ stft_exec = True
 chroma_stft_exec = True
 spectral_contrast_stft_exec = True
 tonnetz_exec = True
+visFFT_exec = True
 flatten = True
 normalize = True
 
@@ -94,14 +95,14 @@ tempDF = pd.DataFrame()
 
 tempDF = pd.concat(Parallel(n_jobs=-1)(delayed(sonicboom.generateFeatures) \
     (x, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, \
-        spectral_contrast_stft_exec, tonnetz_exec, \
+        spectral_contrast_stft_exec, tonnetz_exec, visFFT_exec, \
         flatten, normalize) for x in filedata['path']))
+
+filedata = filedata.join(tempDF.set_index('path'), on='path')
 
 endTime = time.perf_counter()
 runTime = endTime - startTime
 print(f'Finished in {runTime:.4f} secs')
-
-filedata = filedata.join(tempDF.set_index('path'), on='path')
 
 filedata.head()
 

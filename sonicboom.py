@@ -86,7 +86,7 @@ def test_read_audio(filepath):
 # flatten = transpose and take mean of (flatten) array
 # normalize = normalize arrays
 @timer
-def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, flatten=True, normalize=True):
+def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, visFFT_exec, flatten=True, normalize=True):
     audioFile, sampling_rate = load_audio(filepath)
 
     featuresDF = pd.DataFrame([filepath], columns=['path'])
@@ -176,6 +176,20 @@ def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_
         featuresDF['tonnetz'] = tempList
         print("Tonal centroid features (tonnetz) done!")
     
+        if (visFFT_exec == True):
+        #generate Viswesh's custom FFT feature
+            visFFT = visFFTEngineering(audioFile)
+            # if (flatten == True):
+            #     #transpose the array and take the mean along axis=0
+            #     visFFT = np.mean(visFFT.T,axis=0)
+            if (normalize == True):
+                visFFT = norm_audio(visFFT)
+        
+        tempList = []
+        tempList.append(visFFT)
+        featuresDF['visFFT'] = tempList
+        print("Viswesh's custom FFT feature done!")
+    
     return featuresDF
 
 
@@ -250,6 +264,23 @@ def tonnetzEngineering(audioFile, sampling_rate):
 #     print(f'Data points = {soundData.shape[0]}')
 #     print(f'Number of channels = {soundData.shape[1]}')
 #     print(f'Length = {clipLength}s')
+
+#generate an FFT with custom code by Viswesh
+@timer
+def visFFTEngineering(audioFile):
+
+    #FFT
+    ftrans = abs(np.fft.fft(audioFile, n=88200)) #[:round((audio.size/2))])
+    ftrans_pos = ftrans[:round(ftrans.size/2)]
+    fr = np.fft.fftfreq(len(ftrans))
+
+    # Steps to filter > 0 values in fr
+    filter = [] #An empty list for filtering
+
+    fr = fr[fr >= 0]
+    #fr = fr.ravel()
+
+    return fr
 
 @timer
 def load_audio(filepath):
