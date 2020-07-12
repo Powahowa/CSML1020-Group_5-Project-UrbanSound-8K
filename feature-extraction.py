@@ -33,7 +33,7 @@ FILEDESC = 'filedata-librosaFeatures.pkl'
 
 # %% [markdown]
 # ## Read and add filepaths to original UrbanSound metadata
-filedata = sonicboom.init_data('./data/standard_UrbanSound8K/')
+filedata = sonicboom.init_data('./data/UrbanSound8K/')
 
 # %% [markdown]
 # ## Sample down

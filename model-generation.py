@@ -19,7 +19,7 @@ from sklearn.multiclass import OneVsRestClassifier
 
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import fbeta_score, make_scorer
-from sklearn.metrics import balanced_accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import balanced_accuracy_score, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 from sklearn.model_selection import cross_validate
 from mlxtend.plotting import plot_learning_curves
@@ -43,16 +43,20 @@ models = [
     OneVsRestClassifier(KNeighborsClassifier(n_neighbors=10)),
     OneVsRestClassifier(DecisionTreeClassifier()),
     OneVsRestClassifier(GaussianNB()),
-    OneVsRestClassifier(LinearSVC())
+    OneVsRestClassifier(LinearSVC()),
+    OneVsRestClassifier(BaggingClassifier(base_estimator=\
+        DecisionTreeClassifier(max_leaf_nodes=2620), n_estimators=100))
 ]
 model_namelist = ['Logistic Regression',
                   'KNeighbors',
                   'Decision Tree',
                   'GaussianNB', 
-                  'SVM/Linear SVC'
+                  'SVM/Linear SVC',
+                  'Bagging-DT'
                   ]
 scoring = {'precision': make_scorer(precision_score, average='micro'), 
            'recall': make_scorer(recall_score, average='micro'), 
+            'accuracy': make_scorer(accuracy_score), 
            'f1': make_scorer(f1_score, average='micro'),
            'roc_auc': make_scorer(roc_auc_score, average='micro'),
            # 'mcc': make_scorer(matthews_corrcoef) <- cannot support multi-label
@@ -132,7 +136,7 @@ df_cross_validate_results = pd.DataFrame(cv_result_entries, columns =['model_nam
 
 df_cv_results_fit_time = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'fit_time']
 df_cv_results_score_time = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'score_time']
-df_cv_results_balanced_acc = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'test_balanced_accuracy']
+df_cv_results_accuracy = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'test_accuracy']
 df_cv_results_precision = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'test_precision']
 df_cv_results_recall = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'test_recall']
 df_cv_results_f1 = df_cross_validate_results.loc[df_cross_validate_results.metric_key == 'test_f1']
@@ -158,14 +162,14 @@ plt.ylabel('Score Time score', fontsize=label_fontsize_num)
 plt.xticks(rotation=45)
 plt.show()
 
-# plt.figure(figsize=fig_size_tuple)
-# sns.boxplot(x='model_name', y='metric_score', data = df_cv_results_balanced_acc)
-# sns.stripplot(x='model_name', y='metric_score', data = df_cv_results_balanced_acc, size=10, linewidth=2)
-# plt.title('Balanced Accuracy Model Comparison', fontsize=title_fontsize_num)
-# plt.xlabel('Model Name', fontsize=label_fontsize_num)
-# plt.ylabel('Balanced Accuracy score', fontsize=label_fontsize_num)
-# plt.xticks(rotation=45)
-# plt.show()
+plt.figure(figsize=fig_size_tuple)
+sns.boxplot(x='model_name', y='metric_score', data = df_cv_results_accuracy)
+sns.stripplot(x='model_name', y='metric_score', data = df_cv_results_accuracy, size=10, linewidth=2)
+plt.title('Accuracy Model Comparison', fontsize=title_fontsize_num)
+plt.xlabel('Model Name', fontsize=label_fontsize_num)
+plt.ylabel('Accuracy score', fontsize=label_fontsize_num)
+plt.xticks(rotation=45)
+plt.show()
 
 plt.figure(figsize=fig_size_tuple)
 sns.boxplot(x='model_name', y='metric_score', data = df_cv_results_f1)
