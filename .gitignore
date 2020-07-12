@@ -135,3 +135,6 @@ data/UrbanSound8K.tar.gz
 .vscode/settings.json
 /.data/UrbanSound8K
 output/intermediate-data/filedata-librosaFeatures.pkl
+/data
+/output/validation
+/output/train

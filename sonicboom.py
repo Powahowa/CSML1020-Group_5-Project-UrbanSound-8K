@@ -37,6 +37,8 @@ def timer(func):
 @timer
 def init_data(relPathToFolder):
     # Read in the metadata
+
+    #CHANGE THIS BACK
     metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
 
     #recursively add all .wave files to paths list
@@ -129,10 +131,11 @@ def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_
         if (normalize == True):
             stft = norm_audio(stft)
         
-        tempList = []
-        tempList.append(stft)
-        featuresDF['stft'] = tempList
-        print("Short-time Fourier transform (STFT) done!")
+        if (stft_exec == True):
+            tempList = []
+            tempList.append(stft)
+            featuresDF['stft'] = tempList
+            print("Short-time Fourier transform (STFT) done!")
 
     if (chroma_stft_exec == True):
         #generate chroma_stft features
@@ -176,15 +179,15 @@ def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_
         featuresDF['tonnetz'] = tempList
         print("Tonal centroid features (tonnetz) done!")
     
-        if (visFFT_exec == True):
-        #generate Viswesh's custom FFT feature
-            visFFT = visFFTEngineering(audioFile)
-            # if (flatten == True):
-            #     #transpose the array and take the mean along axis=0
-            #     visFFT = np.mean(visFFT.T,axis=0)
-            if (normalize == True):
-                visFFT = norm_audio(visFFT)
-        
+    if (visFFT_exec == True):
+    #generate Viswesh's custom FFT feature
+        visFFT = visFFTEngineering(audioFile)
+        # if (flatten == True):
+        #     #transpose the array and take the mean along axis=0
+        #     visFFT = np.mean(visFFT.T,axis=0)
+        if (normalize == True):
+            visFFT = norm_audio(visFFT)
+
         tempList = []
         tempList.append(visFFT)
         featuresDF['visFFT'] = tempList

@@ -33,7 +33,7 @@ FILEDESC = 'filedata-librosaFeatures.pkl'
 
 # %% [markdown]
 # ## Read and add filepaths to original UrbanSound metadata
-filedata = sonicboom.init_data('./data/UrbanSound8K/')
+filedata = sonicboom.init_data('./data/standard_UrbanSound8K/')
 
 # %% [markdown]
 # ## Sample down
@@ -48,7 +48,7 @@ if (sampleDown == True):
         'class', 
         as_index=False, 
         group_keys=False
-    ).apply(lambda x: x.sample(n=10, random_state=0))
+    ).apply(lambda x: x.sample(n=2, random_state=0))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
@@ -84,11 +84,11 @@ startTime = time.perf_counter()
 
 mfccs_exec = True
 melSpec_exec = True
-stft_exec = True
+stft_exec = False #too many elements, array is huge
 chroma_stft_exec = True
 spectral_contrast_stft_exec = True
 tonnetz_exec = True
-visFFT_exec = True
+visFFT_exec = False
 flatten = True
 normalize = True
 
