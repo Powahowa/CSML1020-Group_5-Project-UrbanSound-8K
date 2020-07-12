@@ -12,7 +12,6 @@ import librosa
 import librosa.display
 from scipy.io.wavfile import read 
 from IPython.display import Audio
-import wave
 #REMEMBER you need ffmpeg installed
 
 # other imports
@@ -21,9 +20,6 @@ import glob #filesystem manipulation
 # Define some decorator functions
 import functools
 import time
-
-#Parallel libraries
-from joblib import Parallel, delayed
 
 def timer(func):
     """Print the runtime of the decorated function"""
@@ -41,6 +37,8 @@ def timer(func):
 @timer
 def init_data(relPathToFolder):
     # Read in the metadata
+
+    #CHANGE THIS BACK
     metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
 
     #recursively add all .wave files to paths list
@@ -90,8 +88,12 @@ def test_read_audio(filepath):
 # flatten = transpose and take mean of (flatten) array
 # normalize = normalize arrays
 @timer
-def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, flatten=True, normalize = True):
+def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, visFFT_exec, flatten=True, normalize=True):
     audioFile, sampling_rate = load_audio(filepath)
+
+    featuresDF = pd.DataFrame([filepath], columns=['path'])
+
+    #featuresDF = pd.DataFrame()
 
     if (mfccs_exec == True):
         #generate mfccs features
@@ -101,45 +103,99 @@ def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_
              mfccs = np.mean(mfccs.T,axis=0)
         if (normalize == True):
             mfccs = norm_audio(mfccs)
+
+        tempList = []
+        tempList.append(mfccs)
+        featuresDF['mfccs'] = tempList
         print("MFCCS done!")
+
     if (melSpec_exec == True):
         #generate melSpec features
         melSpec = melSpecEngineering(audioFile, sampling_rate)
         if(flatten == True):
             #transpose the array and take the mean along axis=0
-            melSpec = np.mean(melSpec.T,axis=0)      
+            melSpec = np.mean(melSpec.T,axis=0)     
+        if (normalize == True):
+            melSpec = norm_audio(melSpec)
+
+        tempList = []
+        tempList.append(melSpec)
+        featuresDF['melSpec'] = tempList
         print("Mel-scaled spectrogram done!")
+
     #all 3 of the STFT, chroma_STFT and spectral_contrast_STFT features are based on a STFT feature so it needs to be generated if any are requested
     if (stft_exec == True or chroma_stft_exec == True or spectral_contrast_stft_exec == True):
         #generate stft features
         stft = stftEngineering(audioFile, sampling_rate)
-        print("Short-time Fourier transform (STFT) done!")
+        # NOTE: no flattening (mean and transpose) for STFT. Not entirely sure why
+        if (normalize == True):
+            stft = norm_audio(stft)
+        
+        if (stft_exec == True):
+            tempList = []
+            tempList.append(stft)
+            featuresDF['stft'] = tempList
+            print("Short-time Fourier transform (STFT) done!")
+
     if (chroma_stft_exec == True):
         #generate chroma_stft features
-        melSpec = melSpecEngineering(audioFile, sampling_rate, stft)
+        chroma_stft = chroma_stftEngineering(audioFile, sampling_rate, stft)
         if(flatten == True):
             #transpose the array and take the mean along axis=0
             chroma_stft = np.mean(chroma_stft.T,axis=0)
+        if (normalize == True):
+            chroma_stft = norm_audio(chroma_stft)
+        
+        tempList = []
+        tempList.append(chroma_stft)
+        featuresDF['chroma_stft'] = tempList
         print("Chromagram (STFT) done!")
 
     if (spectral_contrast_stft_exec == True):
         #generate spectral_contrast_stft features
-        melSpec = melSpecEngineering(audioFile, sampling_rate, stft)
+        spectral_contrast_stft = spectral_contrast_stftEngineering(audioFile, sampling_rate, stft)
         if (flatten == True):
             #transpose the array and take the mean along axis=0
             spectral_contrast_stft = np.mean(spectral_contrast_stft.T,axis=0)
+        if (normalize == True):
+            spectral_contrast_stft = norm_audio(spectral_contrast_stft)
+        
+        tempList = []
+        tempList.append(spectral_contrast_stft)
+        featuresDF['spectral_contrast_stft'] = tempList
         print("Spectral contrast (STFT) done!")
 
     if (tonnetz_exec == True):
         #generate tonnetz features
-        melSpec = melSpecEngineering(audioFile, sampling_rate)
-
+        tonnetz = tonnetzEngineering(audioFile, sampling_rate)
         if (flatten == True):
             #transpose the array and take the mean along axis=0
             tonnetz = np.mean(tonnetz.T,axis=0)
+        if (normalize == True):
+            tonnetz = norm_audio(tonnetz)
+        
+        tempList = []
+        tempList.append(tonnetz)
+        featuresDF['tonnetz'] = tempList
         print("Tonal centroid features (tonnetz) done!")
-            
-    return dataframeThing
+    
+    if (visFFT_exec == True):
+    #generate Viswesh's custom FFT feature
+        visFFT = visFFTEngineering(audioFile)
+        # if (flatten == True):
+        #     #transpose the array and take the mean along axis=0
+        #     visFFT = np.mean(visFFT.T,axis=0)
+        if (normalize == True):
+            visFFT = norm_audio(visFFT)
+
+        tempList = []
+        tempList.append(visFFT)
+        featuresDF['visFFT'] = tempList
+        print("Viswesh's custom FFT feature done!")
+    
+    return featuresDF
+
+
 @timer
 def mfccsEngineering(audioFile, sampling_rate):
 
@@ -179,7 +235,7 @@ def chroma_stftEngineering(audioFile, sampling_rate, stft):
 def spectral_contrast_stftEngineering(audioFile, sampling_rate, stft):
     
     #generate a spectral contrast (from a STFT)
-    spectral_contrast_stft = librosa.feature.spectral_contrast_stft(S=stft,sr=sampling_rate)
+    spectral_contrast_stft = librosa.feature.spectral_contrast(S=stft,sr=sampling_rate)
 
     return spectral_contrast_stft
 
@@ -212,9 +268,26 @@ def tonnetzEngineering(audioFile, sampling_rate):
 #     print(f'Number of channels = {soundData.shape[1]}')
 #     print(f'Length = {clipLength}s')
 
+#generate an FFT with custom code by Viswesh
+@timer
+def visFFTEngineering(audioFile):
+
+    #FFT
+    ftrans = abs(np.fft.fft(audioFile, n=88200)) #[:round((audio.size/2))])
+    ftrans_pos = ftrans[:round(ftrans.size/2)]
+    fr = np.fft.fftfreq(len(ftrans))
+
+    # Steps to filter > 0 values in fr
+    filter = [] #An empty list for filtering
+
+    fr = fr[fr >= 0]
+    #fr = fr.ravel()
+
+    return fr
+
 @timer
 def load_audio(filepath):
-    y, sr = librosa.load(filepath, sr=None)
+    y, sr = librosa.load(filepath, sr=22050)
     return y, sr
 
 def norm_audio(data):
