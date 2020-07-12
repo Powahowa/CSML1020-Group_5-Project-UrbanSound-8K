@@ -48,7 +48,7 @@ if (sampleDown == True):
         'class', 
         as_index=False, 
         group_keys=False
-    ).apply(lambda x: x.sample(n=2, random_state=0))
+    ).apply(lambda x: x.sample(n=10, random_state=0))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
@@ -80,6 +80,7 @@ startTime = time.perf_counter()
 #     4. Chromagram (STFT) \n \
 #     5. Spectral contrast (STFT) \n \
 #     6. Tonal centroid features (tonnetz) from harmonic components \n")
+#     7. Vis's custom FFT feature
 
 mfccs_exec = True
 melSpec_exec = True

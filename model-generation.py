@@ -4,8 +4,8 @@
 # ## Imports
 import pandas as pd
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+# import tensorflow as tf
+# from tensorflow import keras
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, \
@@ -27,7 +27,7 @@ plt.style.use('ggplot')
 
 # %% [markdown]
 # ## Read in the features
-filedata = pd.read_pickle('./output/intermediate-data/filedata-mfcc.pkl')
+filedata = pd.read_pickle('./output/intermediate-data/filedata-librosaFeatures.pkl')
 
 # %% [markdown]
 # ## Try traditional ML models
@@ -55,7 +55,22 @@ scoring = {'precision': make_scorer(precision_score, average='micro'),
 cv_result_entries = []
 i = 0                  
 
-X = pd.DataFrame(filedata['mfccs'].iloc[x] for x in range(len(filedata)))
+#this code goes through and separates out each  elements of each feature array into separate columns
+# DON'T CHANGE IT
+mfccs = pd.DataFrame(filedata['mfccs'].iloc[x] for x in range(len(filedata)))
+melSpec = pd.DataFrame(filedata['melSpec'].iloc[x] for x in range(len(filedata)))
+stft = pd.DataFrame(filedata['stft'].iloc[x] for x in range(len(filedata)))
+chroma_stft = pd.DataFrame(filedata['chroma_stft'].iloc[x] for x in range(len(filedata)))
+spectral_contrast_stft = pd.DataFrame(filedata['spectral_contrast_stft'].iloc[x] for x in range(len(filedata)))
+tonnetz = pd.DataFrame(filedata['tonnetz'].iloc[x] for x in range(len(filedata)))
+visFFT = pd.DataFrame(filedata['visFFT'].iloc[x] for x in range(len(filedata)))
+
+X = pd.concat([mfccs, melSpec, stft, chroma_stft, spectral_contrast_stft, \
+    tonnetz, visFFT], axis=1) 
+
+
+
+#X = filedata['melSpec']
 y = label_binarize(
       pd.DataFrame(filedata['classID'].iloc[x] for x in range(len(filedata))),
       classes=[0,1,2,3,4,5,6,7,8,9]
@@ -82,7 +97,9 @@ cv_results_df = pd.DataFrame(cv_result_entries)
 # ### Misclassification Errors
 i=0
 for model in models:
+    # WTF
     plot_learning_curves(X, y, X, y, model)
+    # WTF
     plt.title('Learning Curve for ' + model_namelist[i], fontsize=14)
     plt.xlabel('Training Set Size (%)', fontsize=12)
     plt.ylabel('Misclassification Error', fontsize=12)
@@ -105,8 +122,7 @@ CLASSES = ['A/C', 'Car Horn', 'Children Play', 'Dog Bark',
            'Siren', 'Street Music']
 i=0
 for _ in models:
-    cm = confusion_matrix(np.argmax(y, axis=1),
-                          np.argmax(y_test_pred[i], axis=1))
+    cm = confusion_matrix(np.argmax(y, axis=1), np.argmax(y_test_pred[i], axis=1))
     cm_df = pd.DataFrame(cm, index = CLASSES, columns = CLASSES)
     cm_df.index.name = 'Actual'
     cm_df.columns.name = 'Predicted'
@@ -114,50 +130,5 @@ for _ in models:
     sns.heatmap(cm_df, annot=True, fmt='.6g', annot_kws={"size": 10}, cmap='Reds')
     plt.show()
     i += 1
-
-# %% [markdown]
-# ## Try Neural Networks
-# ### Define feedforward network architecture
-def get_network():
-    input_shape = (40,)
-    num_classes = 10
-    keras.backend.clear_session()
-
-    model = keras.models.Sequential()
-    model.add(keras.layers.Dense(256, activation="relu", input_shape=input_shape))
-    model.add(keras.layers.Dense(128, activation="relu", input_shape=input_shape))
-    model.add(keras.layers.Dense(64, activation="relu", input_shape=input_shape))
-    model.add(keras.layers.Dense(num_classes, activation = "softmax"))
-    model.compile(optimizer=keras.optimizers.Adam(1e-4),
-        loss=keras.losses.SparseCategoricalCrossentropy(),
-        metrics=["accuracy"])
-
-    return model
-
-# %% [markdown]
-# ### Train and evaluate via 10-Folds cross-validation
-accuracies = []
-folds = np.array(list(range(1,11)))
-kf = KFold(n_splits=10)
-for train_index, test_index in kf.split(folds):
-    traindata = filedata[filedata['fold'].isin(list(folds[train_index]))]
-    x_train = np.array(traindata['mfccs'].tolist())
-    y_train = np.array(traindata['classID'].tolist())
-
-    testdata = filedata[filedata['fold'] == folds[test_index][0]]
-    x_test = np.array(testdata["mfccs"].tolist())
-    y_test = np.array(testdata["classID"].tolist())
-
-    # Possibly do mean normalization here on x_train and
-    # x_test but using only x_train's mean and std.
-
-    model = get_network()
-    model.fit(x_train, y_train, epochs=100, 
-              use_multiprocessing=True, verbose=0)
-    l, a = model.evaluate(x_test, y_test, verbose=0)
-    accuracies.append(a)
-    print("Loss: {0} | Accuracy: {1}".format(l, a))
-
-print("Average 10 Folds Accuracy: {0}".format(np.mean(accuracies)))
 
 # %%
