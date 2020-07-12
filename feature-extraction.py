@@ -29,7 +29,8 @@ import time
 # %% [markdown]
 # ## Define some constants
 SAVEPATH = './output/intermediate-data/'
-FILEDESC = 'filedata-librosaFeatures.pkl'
+#FILEDESC = 'filedata-librosaFeatures.pkl'
+FILEDESC = 'filedata-mfccDeltaFeaturesforNN.pkl'
 
 # %% [markdown]
 # ## Read and add filepaths to original UrbanSound metadata
@@ -83,20 +84,21 @@ startTime = time.perf_counter()
 #     7. Vis's custom FFT feature
 
 mfccs_exec = True
-melSpec_exec = True
-stft_exec = False #too many elements, array is huge
-chroma_stft_exec = True
-spectral_contrast_stft_exec = True
-tonnetz_exec = True
-visFFT_exec = False
-flatten = True
-normalize = True
+melSpec_exec = False
+stft_exec = False #too many elements, array is huge, cannot be flattened
+chroma_stft_exec = False 
+spectral_contrast_stft_exec = False
+tonnetz_exec = False
+visFFT_exec = False #huge, cannot be flattened
+mfccDelta_exec = True #for neural network only, cannot be normalized
+flatten = False
+normalize = False
 
 tempDF = pd.DataFrame() 
 
 tempDF = pd.concat(Parallel(n_jobs=-1)(delayed(sonicboom.generateFeatures) \
     (x, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, \
-        spectral_contrast_stft_exec, tonnetz_exec, visFFT_exec, \
+        spectral_contrast_stft_exec, tonnetz_exec, visFFT_exec, mfccDelta_exec, \
         flatten, normalize) for x in filedata['path']))
 
 filedata = filedata.join(tempDF.set_index('path'), on='path')

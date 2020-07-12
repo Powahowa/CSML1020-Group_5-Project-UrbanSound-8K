@@ -88,7 +88,8 @@ def test_read_audio(filepath):
 # flatten = transpose and take mean of (flatten) array
 # normalize = normalize arrays
 @timer
-def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, visFFT_exec, flatten=True, normalize=True):
+def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_exec, spectral_contrast_stft_exec, tonnetz_exec, 
+visFFT_exec, mfccDelta_exec, flatten=True, normalize=True):
     audioFile, sampling_rate = load_audio(filepath)
 
     featuresDF = pd.DataFrame([filepath], columns=['path'])
@@ -192,7 +193,22 @@ def generateFeatures(filepath, mfccs_exec, melSpec_exec, stft_exec, chroma_stft_
         tempList.append(visFFT)
         featuresDF['visFFT'] = tempList
         print("Viswesh's custom FFT feature done!")
-    
+
+    if (mfccDelta_exec == True):
+    #generate mfcc Delta feature (3d mfccs thing by Tony)
+        mfccDelta = mfccDeltaEngineering(audioFile)
+        # if (flatten == True):
+        #     #transpose the array and take the mean along axis=0
+        #     visFFT = np.mean(visFFT.T,axis=0)
+        # if (normalize == True):
+        #     mfccDelta = norm_audio(mfccDelta)
+
+        # tempList = []
+        # tempList.append(mfccDelta)
+        # featuresDF['mfccDelta'] = tempList
+        featuresDF['mfccDelta'] = mfccDelta
+        print("MFCC Delta feature custom FFT feature done!")
+
     return featuresDF
 
 
@@ -249,6 +265,15 @@ def tonnetzEngineering(audioFile, sampling_rate):
     tonnetz = librosa.feature.tonnetz(y=harmonic, sr=sampling_rate)
 
     return tonnetz
+
+@timer
+def mfccDeltaEngineering(audioFile):
+    features = []
+    melspec = librosa.feature.mfcc(audioFile, n_mfcc=40)
+    deltas = librosa.feature.delta(melspec)
+    combi = np.dstack((melspec, deltas))
+    features.append(combi)
+    return features
 
 # # Function to plot the waveform (stereo)
 # @timer
