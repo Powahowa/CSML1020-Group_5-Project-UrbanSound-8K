@@ -63,10 +63,10 @@ stft = pd.DataFrame(filedata['stft'].iloc[x] for x in range(len(filedata)))
 chroma_stft = pd.DataFrame(filedata['chroma_stft'].iloc[x] for x in range(len(filedata)))
 spectral_contrast_stft = pd.DataFrame(filedata['spectral_contrast_stft'].iloc[x] for x in range(len(filedata)))
 tonnetz = pd.DataFrame(filedata['tonnetz'].iloc[x] for x in range(len(filedata)))
-visFFT = pd.DataFrame(filedata['visFFT'].iloc[x] for x in range(len(filedata)))
+#visFFT = pd.DataFrame(filedata['visFFT'].iloc[x] for x in range(len(filedata)))
 
 X = pd.concat([mfccs, melSpec, stft, chroma_stft, spectral_contrast_stft, \
-    tonnetz, visFFT], axis=1) 
+    tonnetz], axis=1) 
 
 
 
@@ -130,5 +130,16 @@ for _ in models:
     sns.heatmap(cm_df, annot=True, fmt='.6g', annot_kws={"size": 10}, cmap='Reds')
     plt.show()
     i += 1
+
+# %%
+
+print(mfccs.shape)
+print(melSpec.shape)
+print(stft.shape)
+print(chroma_stft.shape)
+print(spectral_contrast_stft.shape)
+print(tonnetz.shape)
+print(visFFT.shape)
+print(X.shape)
 
 # %%
