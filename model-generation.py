@@ -31,23 +31,21 @@ import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 
-import scikitplot as skplt
-
 # %% [markdown]
 # ## Read in the features
-filedata = pd.read_pickle('./output/intermediate-data/filedata-librosaConventionalFeatures.pkl')
+filedata = pd.read_pickle('./output/intermediate-data/filedata-librosaFeatures.pkl')
 
 # %% [markdown]
 # ## Try traditional ML models
 # ### Define and train the models
 models = [  
-    OneVsRestClassifier(LogisticRegression(random_state=1, n_jobs=-1), n_jobs=-1),
-    OneVsRestClassifier(KNeighborsClassifier(n_neighbors=10, n_jobs=-1), n_jobs=-1),
-    OneVsRestClassifier(DecisionTreeClassifier(), n_jobs=-1),
-    OneVsRestClassifier(GaussianNB(), n_jobs=-1),
-    OneVsRestClassifier(LinearSVC(), n_jobs=-1),
+    OneVsRestClassifier(LogisticRegression(random_state=1)),
+    OneVsRestClassifier(KNeighborsClassifier(n_neighbors=10)),
+    OneVsRestClassifier(DecisionTreeClassifier()),
+    OneVsRestClassifier(GaussianNB()),
+    OneVsRestClassifier(LinearSVC()),
     OneVsRestClassifier(BaggingClassifier(base_estimator=\
-        DecisionTreeClassifier(max_leaf_nodes=2620), n_estimators=100, n_jobs=-1), n_jobs=-1)
+        DecisionTreeClassifier(max_leaf_nodes=2620), n_estimators=100))
 ]
 model_namelist = ['Logistic Regression',
                   'KNeighbors',

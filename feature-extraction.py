@@ -30,13 +30,11 @@ import time
 # ## Define some constants
 SAVEPATH = './output/intermediate-data/'
 #FILEDESC = 'filedata-librosaFeatures.pkl'
-FILEDESC = 'filedata-librosaConventionalFeatures.pkl'
+FILEDESC = 'filedata-mfccDeltaFeaturesforNN.pkl'
 
 # %% [markdown]
 # ## Read and add filepaths to original UrbanSound metadata
 filedata = sonicboom.init_data('./data/UrbanSound8K/')
-
-# NOTE Remember to delete troublesome wav file: \fold1\88466-7-0-0.wav
 
 # %% [markdown]
 # ## Sample down
@@ -51,7 +49,7 @@ if (sampleDown == True):
         'class', 
         as_index=False, 
         group_keys=False
-    ).apply(lambda x: x.sample(n=25, random_state=0))
+    ).apply(lambda x: x.sample(n=2, random_state=0))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
@@ -86,15 +84,15 @@ startTime = time.perf_counter()
 #     7. Vis's custom FFT feature
 
 mfccs_exec = True
-melSpec_exec = True
+melSpec_exec = False
 stft_exec = False #too many elements, array is huge, cannot be flattened
-chroma_stft_exec = True 
-spectral_contrast_stft_exec = True
-tonnetz_exec = True
+chroma_stft_exec = False 
+spectral_contrast_stft_exec = False
+tonnetz_exec = False
 visFFT_exec = False #huge, cannot be flattened
-mfccDelta_exec = False #for neural network only, cannot be normalized
-flatten = True
-normalize = True
+mfccDelta_exec = True #for neural network only, cannot be normalized
+flatten = False
+normalize = False
 
 tempDF = pd.DataFrame() 
 
