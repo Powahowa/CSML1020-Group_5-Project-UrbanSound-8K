@@ -136,6 +136,4 @@ data/UrbanSound8K.tar.gz
 /.data/UrbanSound8K
 output/intermediate-data/filedata-librosaFeatures.pkl
 /data
-/output/validation
-/output/train
 output/intermediate-data
