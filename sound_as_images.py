@@ -31,58 +31,18 @@ filedata = sonicboom.init_data('./data/UrbanSound8K/')
 train = pd.DataFrame()
 test = pd.DataFrame()
 
-for x in range(10):
+""" for x = in range(10):
     fileclass = filedata['classID'] == x
     filtered = filedata[fileclass]
     trainTemp, testTemp = train_test_split(filtered, test_size=0.20, random_state=0)
     train = pd.concat([train, trainTemp])
-    test = pd.concat([test, testTemp])
+    test = pd.concat([test, testTemp]) """
 
-
-# %% [markdown]
-# Read in the meta-data file
-""" meta = pandas.read_csv('../data/UrbanSound8K/metadata/UrbanSound8K.csv')
-meta_fold1 = meta[meta.fold == 1] """
-
-# %% [markdown]
-""" The idea is to read all sound files found in the meta data list, put them through a fourier
-transform and save the images of the transformed signal to perform classification on """
-
-#%% 
-# # Set directory to read files from 
-src = '../data/UrbanSound8K/audio'
-
-# Recursively read files
-# Get a dataframe of all folder names
-# fold_df = pandas.DataFrame(next(os.walk(src))[1])
-
-#%% 
-# Do this only once
-# Create folders for Images to save to
-new_folder_list = ['air_conditioner', 'car_horn', 'children_playing', 
-                    'dog_bark','drilling', 'engine_idling', 'gun_shot',
-                    'jackhammer','siren','street_music']
-
-for folder in new_folder_list:
-    newdir = pathlib.Path(os.getcwd() + f'/{folder}')
-    newdir.mkdir(parents=True, exist_ok=True)
-
-#%%
-# Initiate lists to hold all the raw file, it's timeline, fft'd audio files, filename
-raw_list = []
-timeline = []
-fft_file = []
-fft_freq = []
-filename = []
-temp_df = pandas.DataFrame()
-
-# Loop through each folder & read all files
-""" for i in range(0,len(fold_df)):
-    fold = fold_df.iloc[i,0]
-    path = '{}/{}'.format(src, ''.join(fold)) """
-
-path = src + '/fold1'
-
+fileclass = filedata['classID'] == 3
+filtered = filedata[fileclass]
+trainTemp, testTemp = train_test_split(filtered, test_size=0.20, random_state=0)
+train = pd.concat([train, trainTemp])
+test = pd.concat([test, testTemp])
 
 
 #%%
@@ -119,12 +79,13 @@ def fftgen(df, split):
             folder = df['class'].iloc[j]
             img_path = 'output/validation/' + folder + '/' + fname + '.png'
 
-        plt.savefig(img_path, dpi = 25.6)
+        plt.savefig(img_path, dpi = 25.6) 
         plt.close()    
 
 #%%
-fftgen(train, split = "train")
 fftgen(test, split = "test")
+#%%
+fftgen(train, split = "train")
 
 #%% 
 # Image classification using Tensorflow & Keras
