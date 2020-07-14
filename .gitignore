@@ -137,3 +137,6 @@ data/UrbanSound8K.tar.gz
 output/intermediate-data/filedata-librosaFeatures.pkl
 /data
 output/intermediate-data
+
+model_trained_sound_10.hdf5
+sound_best_model_10class.hdf5

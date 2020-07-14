@@ -1,10 +1,11 @@
 # %% [markdown]
-# Import Dependencies
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
-# %%
+# This python script takes audio files from "filedata" from sonicboom, runs each audio file through 
+# Fast Fourier Transform, plots the FFT image, splits the FFT'd images into train, test & validation
+# and paste them in their respective folders
+
+# Import Dependencies
+
 import numpy as np
 import pandas as pd
 
@@ -12,14 +13,21 @@ import scipy
 from scipy import io
 from scipy.io.wavfile import read as wavread
 from scipy.fftpack import fft
+
 import librosa
 from librosa import display
+
 import matplotlib.pyplot as plt 
+
 from glob import glob
+
 import sklearn
 from sklearn.model_selection import train_test_split
+
 import os
+
 from PIL import Image
+
 import pathlib
 
 import sonicboom
@@ -27,10 +35,12 @@ import sonicboom
 from joblib import Parallel, delayed
 # %% [markdown]
 # ## Read and add filepaths to original UrbanSound metadata
-filedata = sonicboom.init_data('./data/UrbanSound8K/')
+filedata = sonicboom.init_data('./data/UrbanSound8K/') #Read filedata as written in sonicboom
 
+#Initialize empty dataframes to later enable saving the images into their respective folders
 train = pd.DataFrame()
 test = pd.DataFrame()
+validation = pd.DataFrame()
 
 """ for x = in range(10):
     fileclass = filedata['classID'] == x
@@ -39,12 +49,15 @@ test = pd.DataFrame()
     train = pd.concat([train, trainTemp])
     test = pd.concat([test, testTemp]) """
 # %%
-fileclass = filedata['classID'] == 9
-filtered = filedata[fileclass]
-trainTemp, testTemp = train_test_split(filtered, test_size=0.20, random_state=0)
-train = pd.concat([train, trainTemp])
-test = pd.concat([test, testTemp])
+# Read the entire filedata
+filtered = filedata #Read the data in 
+trainTemp, valTemp = train_test_split(filtered, test_size=0.10, random_state=0) #Take 10% as blind test set
+trainTemp, testTemp = train_test_split(trainTemp, test_size=0.20, random_state=0) #Split the remaining into an 80-20 train test split
 
+# Assign the different splits to different dataframes
+train = pd.concat([train, trainTemp]) 
+test = pd.concat([test, testTemp]) 
+validation = pd.concat([validation, valTemp])
 
 #%%
 #Read all files in each path folder iteration
@@ -54,7 +67,7 @@ def fftgen(filepath, filename, classID, split):
         audio, sfreq = librosa.load(filepath)        
         
         #FFT
-        ftrans = abs(numpy.fft.fft(audio, n=88200)) #[:round((audio.size/2))])
+        ftrans = abs(np.fft.fft(audio, n=88200)) #[:round((audio.size/2))])
         ftrans_pos = ftrans[:round(ftrans.size/2)]
         #fr = numpy.fft.fftfreq(len(ftrans))
 
@@ -78,115 +91,27 @@ def fftgen(filepath, filename, classID, split):
         elif split == 'test':
             fname = filename
             folder = classID
-            img_path = 'output/validation/' + folder + '/' + fname + '.png'
+            img_path = 'output/test/' + folder + '/' + fname + '.png'
+        elif split == 'validation':
+            fname = filename
+            folder = classID
+            img_path = 'output/validation/' + folder + '/' + fname + '.png' 
 
         plt.savefig(img_path, dpi = 25.6) 
         plt.close()    
-
-#%%
-fftgen(test, split = "test")
-#%%
-fftgen(train, split = "train")
-
-#%%
-for j in range(len(test)):
-    fftgen(filepath = test['path'].iloc[j], filename= test['slice_file_name'].iloc[j], classID=test['class'].iloc[j], split = "test")
 
 #%% Parallel
 Parallel(n_jobs=-1)(delayed(fftgen) \
     (filepath = test['path'].iloc[j], filename= test['slice_file_name'].iloc[j], classID=test['class'].iloc[j], split = "test") for j in range(len(test)))
 
 #%%
-
 Parallel(n_jobs=-1)(delayed(fftgen) \
     (filepath = train['path'].iloc[j], filename= train['slice_file_name'].iloc[j], classID=train['class'].iloc[j], split = "train") for j in range(len(train)))
 
-
-
-#%% 
-# Multiclass with INCEPTION
-#import dependencies
-import tensorflow as tf
-import matplotlib.image as img
-%matplotlib inline
-import numpy as np
-from collections import defaultdict
-import collections
-from shutil import copy
-from shutil import copytree, rmtree
-import tensorflow.keras.backend as K
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import random
-import tensorflow as tf
-import tensorflow.keras.backend as K
-from tensorflow.keras import regularizers
-from tensorflow.keras.applications.inception_v3 import InceptionV3
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
-from tensorflow.keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D, AveragePooling2D
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
-from tensorflow.keras.optimizers import SGD
-from tensorflow.keras.regularizers import l2
-from tensorflow import keras
-from tensorflow.keras import models
-import cv2
 #%%
-# Use the pretrained INCEPTION model
-K.clear_session()
 
-n_classes = 10
-#img_width, img_height = 299, 299
-train_data_dir = train_dir
-validation_data_dir = validation_dir
-nb_train_samples = 6985
-nb_validation_samples = 1747
-batch_size = 16
-#%%
-train_datagen = ImageDataGenerator(
-    rescale=1. / 255,
-    shear_range=0.2,
-    zoom_range=0.2,
-    horizontal_flip=True)
-
-test_datagen = ImageDataGenerator(rescale=1. / 255)
-
-train_generator = train_datagen.flow_from_directory(
-    train_dir,
-    batch_size=batch_size,
-    class_mode='categorical')
-
-validation_generator = test_datagen.flow_from_directory(
-    validation_dir,
-    batch_size=batch_size,
-    class_mode='categorical')
-#%%
-inception = InceptionV3(weights='imagenet', include_top=False)
-x = inception.output
-x = GlobalAveragePooling2D()(x)
-x = Dense(128,activation='relu')(x)
-x = Dropout(0.2)(x)
-
-predictions = Dense(n_classes,kernel_regularizer=regularizers.l2(0.005), activation='softmax')(x)
-
-model = Model(inputs=inception.input, outputs=predictions)
-model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
-checkpointer = ModelCheckpoint(filepath='best_model_11class.hdf5', verbose=1, save_best_only=True)
-csv_logger = CSVLogger('history_11class.log')
-
-sound_10class = model.fit_generator(train_generator,
-                    steps_per_epoch = nb_train_samples // batch_size,
-                    validation_data=validation_generator,
-                    validation_steps=nb_validation_samples // batch_size,
-                    epochs=5,
-                    verbose=1,
-                    callbacks=[csv_logger, checkpointer])
-
-model.save('model_trained_sound_10.hdf5')
+Parallel(n_jobs=-1)(delayed(fftgen) \
+    (filepath = validation['path'].iloc[j], filename= validation['slice_file_name'].iloc[j], classID=validation['class'].iloc[j], split = "validation") for j in range(len(validation)))
 
 
 
