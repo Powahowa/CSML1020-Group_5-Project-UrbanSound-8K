@@ -1,3 +1,7 @@
+import sys
+sys.stdout = open("TF_MultiClass_NN_INCEPTION-output.txt", "w")
+
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -153,6 +157,7 @@ validation_data_dir = validation_dir
 nb_train_samples = 6286
 nb_validation_samples = 1572
 batch_size = 20
+num_waits = 50
 #%%
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -183,15 +188,20 @@ predictions = Dense(n_classes,kernel_regularizer=regularizers.l2(0.005), activat
 model = Model(inputs=inception.input, outputs=predictions)
 model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 checkpointer = ModelCheckpoint(filepath='sound_best_model_10class.hdf5', verbose=1, save_best_only=True)
+early = early = keras.callbacks.EarlyStopping(
+        monitor='val_loss', 
+        mode='min', 
+        patience=num_waits
+    )
 csv_logger = CSVLogger('history_10class.log')
 #%%
 sound_10class = model.fit_generator(train_generator,
                     steps_per_epoch = nb_train_samples // batch_size,
                     validation_data=validation_generator,
                     validation_steps=nb_validation_samples // batch_size,
-                    epochs=100,
+                    epochs=1000,
                     verbose=1,
-                    callbacks=[csv_logger, checkpointer])
+                    callbacks=[csv_logger, early, checkpointer])
 
 model.save('model_trained_sound_10.hdf5')
 
@@ -227,38 +237,81 @@ plot_loss(sound_10class,'Sound-Inceptionv3')
 K.clear_session()
 model_best = load_model('sound_best_model_10class.hdf5',compile = False)
 
-#%% Set blind test directory
-blind_dir = src + '/validation' # blind test directory
+
 
 #%% Load blind test images
 print("This is the blind test")
 print('------------------------')
 
-images = []
+#%% Set blind test directory
+blind_dir = src + '/validation' # blind test directory
+   
+def init_data(relPathToFolder):
+    # Read in the metadata
 
-for n in range(1):# len(os.listdir(blind_dir))):
-    images.append(blind_dir + '/' + os.listdir(blind_dir)[n])
+    metaData = pd.read_csv(relPathToFolder + 'UrbanSound8K_png.csv')
 
-#%%
-def predict_class(model, images, show = True):
-  for img in images:
-    img = image.load_img(img) #target_size=(299, 299))
+    #recursively add all .wave files to paths list
+    paths = list(pathlib.Path(relPathToFolder + '/output/validation').glob('**/*.png'))
+    fileNames = paths.copy()
+
+    #remove path from fileNames leaving us just with the raw filename
+    for i in range(len(fileNames)):
+        fileNames[i] = os.path.basename(fileNames[i].name)
+
+    #create dataframe from paths and filenames
+    fileData = pd.DataFrame(list(zip(paths, fileNames)), 
+                            columns =['path', 'slice_file_name']) 
+
+    #merge metadata and fileData (the one we just created) dataframes
+    fileData = fileData.join(metaData.set_index('slice_file_name'), 
+                             on='slice_file_name')
+    return fileData
+
+
+filedata = init_data('./')
+
+#for n in range(len(os.listdir(blind_dir))):
+#    images.append(blind_dir + '/' + os.listdir(blind_dir)[n])
+
+    #%%
+def predict_class(model, path, show = True):
+    img = image.load_img(path) #target_size=(299, 299))
     img = image.img_to_array(img)                    
     img = np.expand_dims(img, axis=0)         
     img /= 255.                                      
 
     pred = model.predict(img)
     index = np.argmax(pred)
-    class_list.sort()
-    pred_value = class_list[index]
+    #class_list.sort()
+    pred_value = index
+    
     if show:
         plt.imshow(img[0])                           
         plt.axis('off')
         plt.title(pred_value)
         plt.show()
+    return pred_value
+    
+predicted_class = []
 
-#%% 
-predict_class(model_best, images, True)
+#predicted_class.append(Parallel(n_jobs=-1)(delayed(predict_class) \
+#    (model_best, path, show = False) for path in filedata['path']))
+
+for path in (filedata['path']):
+    predicted_class.append(predict_class(model_best, path, show = False))
+    
+filedata['predicted_class'] = predicted_class
+
+
+total_correct = len(filedata.loc[filedata['classID'] ==filedata['predicted_class']])
+
+accuracy = total_correct / len(filedata)
+
+print('Blind Test Accuracy is:' + str(accuracy*100) + "%")
+
+#filedata.head()
+
 
 #%%
 
@@ -293,3 +346,4 @@ predict_class(model_best, images, True)
 
 
 # %%
+sys.stdout.close()
