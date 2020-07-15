@@ -38,7 +38,6 @@ def timer(func):
 def init_data(relPathToFolder):
     # Read in the metadata
 
-    #CHANGE THIS BACK
     metaData = pd.read_csv(relPathToFolder + 'metadata/UrbanSound8K.csv')
 
     #recursively add all .wave files to paths list
