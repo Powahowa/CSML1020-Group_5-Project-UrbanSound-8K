@@ -249,18 +249,18 @@ print(X.shape)
 # %%
 
 #Sanity check on SVM test results
-testResults = pd.DataFrame() 
-actual = []
-predict = []
-for x in range(len(y_test)):
-    actual.append(np.argmax(y_test[x])+1)
-    predict.append(np.argmax(y_test_pred[4][x])+1)
+# testResults = pd.DataFrame() 
+# actual = []
+# predict = []
+# for x in range(len(y_test)):
+#     actual.append(np.argmax(y_test[x])+1)
+#     predict.append(np.argmax(y_test_pred[4][x])+1)
 
-testResults['actual'] = actual
-testResults['predict'] = predict
+# testResults['actual'] = actual
+# testResults['predict'] = predict
 
-testResults.head()
+# testResults.head()
 
-testResults.to_csv('testResults')
+# testResults.to_csv('testResults')
 
 # %%
