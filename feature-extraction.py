@@ -39,7 +39,7 @@ filedata = sonicboom.init_data('./data/UrbanSound8K/')
 # %% [markdown]
 # ## Sample down
 
-sampleDown = False
+sampleDown = True
 
 # samples down grouping by class - this gives me X items from each class.
 # as_index=False is important because otherwise,
@@ -49,12 +49,26 @@ if (sampleDown == True):
         'class', 
         as_index=False, 
         group_keys=False
-    ).apply(lambda x: x.sample(n=2, random_state=0))
+    ).apply(lambda x: x.sample(n=3, random_state=0))
 
 # check that the sample down is working
 # as_index=False is important because otherwise,
 # Pandas calls the index and the column the same thing, confusing itself
 filedata.groupby('class', as_index=False)['slice_file_name'].nunique()
+
+
+# %%
+
+#Feature plot generation
+
+Parallel(n_jobs=-1)(delayed(sonicboom.featurePlot)(filedata['path'].iloc[x], \
+filedata['slice_file_name'].iloc[x], filedata['classID'].iloc[x]) for x in range(len(filedata)))
+
+#for x in range(len(filedata)):
+#    sonicboom.featurePlot()
+
+
+
 
 # %% [markdown]
 # ## Read one audio file to see what it contains
@@ -112,5 +126,19 @@ filedata.head()
 # %% [markdown]
 # ## Save the generated features
 filedata.to_pickle(SAVEPATH + FILEDESC)
+# %% 
+
+#working cell for plotting
+
+audioFile, samplingRate = sonicboom.load_audio(filedata['path'].iloc[0])
+
+plt.figure(figsize=(10, 4))
+
+tonnetz = sonicboom.tonnetzEngineering(audioFile, samplingRate)
+
+plt.figure(figsize=(8, 4))
+librosa.display.specshow(tonnetz, y_axis='tonnetz')
+plt.colorbar()
+plt.title('Tonal Centroids (Tonnetz)')
 
 # %%

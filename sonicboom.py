@@ -323,3 +323,98 @@ def norm_audio(data):
 def samplerate(filepath):
     x, samplerate = librosa.load(filepath)
     return samplerate
+
+def featurePlot(filepath, fname, classID):
+    audioFile, samplingRate = load_audio(filepath)
+
+    # Plot librosa audio visualizations
+    
+    plt.figure(figsize=(8, 4))
+    librosa.display.waveplot(audioFile, sr=samplingRate)
+    plt.title('Waveplot')
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_Waveplot.png')
+
+
+    #plt.figure(figsize=(8, 4))
+    #plt.savefig("./output/featurePlots/" + fname + '_Waveplot.png')
+
+    #plt.figure(figsize=(12, 4))
+    #librosa.display.specshow(audioFile)
+
+    # Feature Engineering with Librosa
+
+    #Mel-frequency cepstral coefficients (MFCCs)
+
+    mfccs = mfccsEngineering(audioFile, samplingRate)
+
+    plt.figure(figsize=(8, 4))
+    librosa.display.specshow(mfccs, x_axis='time')
+    plt.colorbar()
+    plt.title('MFCC')
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_MFCC.png')
+
+    plt.figure(figsize=(8, 4))
+ 
+    plt.figure(figsize=(10, 4))
+    #melSpec = sonicboom.melSpecEngineering(audioFile, samplingRate)
+
+    S = librosa.feature.melspectrogram(y=audioFile, sr=samplingRate, n_mels=128, fmax=8000)
+    librosa.display.specshow(librosa.power_to_db(S, ref=np.max), y_axis='mel', fmax=8000, x_axis='time')
+    plt.colorbar(format='%+2.0f dB')
+    plt.title('Mel Spectrogram')
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_MelSpec.png')
+
+
+    stft = stftEngineering(audioFile, samplingRate)
+
+    chroma_stft = chroma_stftEngineering(audioFile, samplingRate, stft)
+
+    plt.figure(figsize=(8, 4))
+    librosa.display.specshow(chroma_stft)
+    plt.title('Chromagram (STFT)')
+    #plt.show()
+    librosa.display.specshow(chroma_stft, y_axis='chroma', x_axis='time')
+    plt.title('Chromagram')
+    plt.tight_layout()
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_Chroma_STFT.png')
+
+    #VIS FFT PLOT
+    plt.figure(figsize=(8, 4))
+    ftrans = abs(np.fft.fft(audioFile, n=88200)) 
+    ftrans_pos = ftrans[:round(ftrans.size/2)]
+    #fig = plt.figure(frameon=False)
+    #fig.set_size_inches(10,10)
+    #ax = plt.Axes(fig,[0.,0.,1.,1.])
+    #ax.set_axis_off()
+    #fig.add_axes(ax)
+    fig = plt.plot(ftrans_pos)
+    #plt.savefig(img_path, dpi = 25.6)
+    plt.title('Fourier Transform')
+    plt.xlabel('Frequency')
+    plt.tight_layout()
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_FFT.png')
+
+    stft = stftEngineering(audioFile, samplingRate)
+    spectral_contrast_stft = spectral_contrast_stftEngineering(audioFile, samplingRate, stft)
+
+    plt.figure(figsize=(8, 4))
+    librosa.display.specshow(spectral_contrast_stft, x_axis='time')
+    plt.colorbar()
+    plt.ylabel('Frequency bands')
+    plt.title('Spectral contrast')
+    plt.tight_layout()
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_Spec_Cont_STFT.png')
+
+    tonnetz = tonnetzEngineering(audioFile, samplingRate)
+
+    plt.figure(figsize=(8, 4))
+    librosa.display.specshow(tonnetz, y_axis='tonnetz')
+    plt.colorbar()
+    plt.title('Tonal Centroids (Tonnetz)')
+    plt.savefig("./output/featurePlots/" + str(classID) + "/" + fname + '_Tonnetz.png')
