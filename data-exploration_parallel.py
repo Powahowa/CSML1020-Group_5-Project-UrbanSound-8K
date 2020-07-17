@@ -69,7 +69,7 @@ file_data['raw_audio_tuple'] = Parallel(n_jobs=-1)(delayed(
 file_data[['raw_features', 'sample_rate']] = pd.DataFrame(
     file_data['raw_audio_tuple'].tolist(), index=file_data.index) 
 file_data = file_data.drop(columns=['raw_audio_tuple'])
-
+# %%
 file_data['duration'] = [
     librosa.get_duration(file_data['raw_features'].iloc[i], 
                          file_data['sample_rate'].iloc[i])
@@ -102,6 +102,19 @@ plt.show()
 ax = sns.distplot(file_data['duration'], bins=20, kde=False)
 # ax.set_title('Count of Clip Lengths')
 plt.xlabel('Duration (seconds)')
+plt.ylabel('Count')
+plt.show()
+
+# %% [markdown]
+# ### Plot the overall sample rates
+ax = sns.countplot(x='sample_rate', data=file_data)
+# ax.set_title('Overall count of audio files by category')
+ax.set_xticklabels(
+    ax.get_xticklabels(), 
+    rotation=45, 
+    horizontalalignment='right',
+)
+plt.xlabel('Sample Rate')
 plt.ylabel('Count')
 plt.show()
 
