@@ -1,0 +1,11 @@
+,class,accuracy_score
+0,Accuracy - A/C,0.9308755760368663
+1,Accuracy - Car Horn,0.9518072289156626
+2,Accuracy - Children Play,0.8918918918918919
+3,Accuracy - Dog Bark,0.9333333333333333
+4,Accuracy - Drilling,0.9308510638297872
+5,Accuracy - Engine Idle,0.9505494505494505
+6,Accuracy - Gun Shot,0.9770114942528736
+7,Accuracy - Jackhammer,0.9414893617021277
+8,Accuracy - Siren,0.9438775510204082
+9,Accuracy - Street Music,0.9132653061224489
