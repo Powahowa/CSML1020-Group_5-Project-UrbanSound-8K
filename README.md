@@ -1,0 +1,4 @@
+# CSML1020-Project-UrbanSound-8K
+CSML1020 Final Project for Certificate of Machine Learning at York University.  UrbanSound8K dataset audio classification.
+
+Classification of environmental data in a usable format has been critical to the “Big Data” revolution. Images and numerical data are extremely well represented in this space, but typically audio has been more obscure as the industry lacks a standard pipeline for audio classification. In this paper we examine various methods approaches of classifying environmental sound data. A purely numerical approach as well as a translation of the problem to image classification are attempted. Both traditional machine learning and deep learning through the use of convolution neural network are attempted for classification. Cloud computing resources are utilized to accelerate performance but are not mandatory.
